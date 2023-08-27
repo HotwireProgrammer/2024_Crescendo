@@ -74,15 +74,27 @@ public class Robot extends TimedRobot {
 		linear, squared, tangent, inverse, cb, cbrt,
 	}
 
+	/*public String name = "hello";
+	public int number = 1;
+	public double decimal = 10.5;
+
+	/*
 	public TalonSRX motorOne = new TalonSRX(34);
 	public TalonSRX swerve1 = new TalonSRX(44);
+
 	public TalonSRX motorTwo = new TalonSRX(33);
 	public TalonSRX swerve2 = new TalonSRX(43);
+
 	public TalonSRX MotorThree = new TalonSRX(32);
 	public TalonSRX Swerve3 = new TalonSRX(42);
+
 	public TalonSRX MotorFour = new TalonSRX(31);
 	public TalonSRX Swerve4 = new TalonSRX(41);
-
+*/
+	public SwerveModule swerveOne = new SwerveModule(34, 44);
+	public SwerveModule swerveTwo = new SwerveModule(34, 44);
+	public SwerveModule swerveThree = new SwerveModule(32, 42);
+	public SwerveModule swerveFour = new SwerveModule(31, 41);
 
 
 
@@ -183,8 +195,29 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
-		swerve1.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
+		double value = flightStickLeft.getRawAxis(2);
+
+		swerveOne.spin(value);
+		swerveTwo.spin(value);
+		swerveThree.spin(value);
+		swerveFour.spin(value);
+
+		double valueSpin = flightStickLeft.getRawAxis(1);
+
+		swerveOne.Drive(valueSpin);
+		swerveTwo.Drive(valueSpin);
+		swerveThree.Drive(valueSpin);
+		swerveFour.Drive(valueSpin);
+
 	}
+
+		/* 
+		swerve1.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
+		swerve2.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
+		swerve3.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
+		swerve4.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
+		*/
+
 	
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
 
