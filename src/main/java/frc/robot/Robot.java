@@ -67,6 +67,7 @@ public class Robot extends TimedRobot {
 	public boolean arcadeDrive = false;
 	public Joystick flightStickLeft;
 	public Joystick flightStickRight;
+	public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushed);
 
 	public Limelight limelight = new Limelight();
 
@@ -74,32 +75,15 @@ public class Robot extends TimedRobot {
 		linear, squared, tangent, inverse, cb, cbrt,
 	}
 
-	/*public String name = "hello";
-	public int number = 1;
-	public double decimal = 10.5;
-
-	/*
-	public TalonSRX motorOne = new TalonSRX(34);
-	public TalonSRX swerve1 = new TalonSRX(44);
-
-	public TalonSRX motorTwo = new TalonSRX(33);
-	public TalonSRX swerve2 = new TalonSRX(43);
-
-	public TalonSRX MotorThree = new TalonSRX(32);
-	public TalonSRX Swerve3 = new TalonSRX(42);
-
-	public TalonSRX MotorFour = new TalonSRX(31);
-	public TalonSRX Swerve4 = new TalonSRX(41);
-*/
-	public SwerveModule swerveOne = new SwerveModule(34, 44);
-	public SwerveModule swerveTwo = new SwerveModule(34, 44);
-	public SwerveModule swerveThree = new SwerveModule(32, 42);
-	public SwerveModule swerveFour = new SwerveModule(31, 41);
-
-
+	public SwerveModule swerveOne = new SwerveModule(50, 49);
+	// public SwerveModule swerveTwo = new SwerveModule(34, 44);
+	// public SwerveModule swerveThree = new SwerveModule(32, 42);
+	// public SwerveModule swerveFour = new SwerveModule(31, 41);
 
 	public DriverStation driverStation;
 	public RobotState currentState;
+	public boolean DriveEnabled;
+	public boolean SpinEnabled;
 
 	// Auto
 	public LinkedList<AutoStep> firstAuto;
@@ -195,30 +179,102 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
-		double value = flightStickLeft.getRawAxis(2);
+		double value = flightStickLeft.getRawAxis(1);
 
-		swerveOne.spin(value);
-		swerveTwo.spin(value);
-		swerveThree.spin(value);
-		swerveFour.spin(value);
+		// swerveOne.spin(value);
+		// swerveOne.spin(0.25);
+		// swerveTwo.spin(value);
+		// swerveThree.spin(value);
+		// swerveFour.spin(value);
 
-		double valueSpin = flightStickLeft.getRawAxis(1);
+		double valueSpin = flightStickLeft.getRawAxis(2);
 
-		swerveOne.Drive(valueSpin);
-		swerveTwo.Drive(valueSpin);
-		swerveThree.Drive(valueSpin);
-		swerveFour.Drive(valueSpin);
+		// swerveOne.Drive(valueSpin);
+		// swerveTwo.Drive(valueSpin);
+		// swerveThree.Drive(valueSpin);
+		// swerveFour.Drive(valueSpin);
+
+		System.out.println(swerveOne.turningEncoder.getPosition());
+
+		if (flightStickRight.getRawButton(1)) {
+			if (DriveEnabled) {
+				swerveOne.Drive(0.1);
+				swerveOne.spin(0);
+			} else if (SpinEnabled) {
+				swerveOne.spin(0.1);
+				swerveOne.Drive(0);
+			}
+		}else {
+			swerveOne.Drive(0);
+			swerveOne.spin(0);
+		}
+		
+		if (flightStickRight.getRawButtonPressed(2)) {
+			if (DriveEnabled) {
+				DriveEnabled = false;
+				SpinEnabled = true;
+			} else {
+				DriveEnabled = true;
+				SpinEnabled = false;
+			}
+		}
+
+		if (flightStickLeft.getRawButtonReleased(1)) {
+			swerveOne.Drive(0);
+			swerveOne.spin(0);
+		}
+
+		/*
+		 * if (DriveEnabled=true){
+		 * flightStickLeft.getRawButtonPressed(1);
+		 * 
+		 * swerveOne.Drive(0.3);
+		 * }
+		 * if (SpinEnabled=true){
+		 * flightStickLeft.getRawButtonPressed(1);
+		 * 
+		 * swerveOne.spin(0.3);
+		 * }
+		 * if (DriveEnabled=false){
+		 * 
+		 * 
+		 * swerveOne.Drive(0.0);
+		 * }
+		 * if (SpinEnabled=false){
+		 * 
+		 * 
+		 * swerveOne.spin(0.0);
+		 * }
+		 * if (flightStickLeft.getRawButtonReleased(1)) {
+		 * SpinEnabled = false;
+		 * DriveEnabled =false;
+		 * 
+		 * }
+		 * if (flightStickLeft.getRawButtonPressed(3)) {
+		 * SpinEnabled = true;
+		 * 
+		 * 
+		 * }if (flightStickLeft.getRawButtonPressed(4)) {
+		 * DriveEnabled = true;
+		 * 
+		 * }
+		 */
+
+		/*
+		 * if (operator.getRawButton(7)) {
+		 * arm.set(0.4);
+		 * 
+		 * } else if (operator.getRawButton(5)) {
+		 * arm.set(-0.4);
+		 * 
+		 * } else {
+		 * arm.set(0.0);
+		 * 
+		 * }
+		 */
 
 	}
 
-		/* 
-		swerve1.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
-		swerve2.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
-		swerve3.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
-		swerve4.set(TalonSRXControlMode.PercentOutput, flightStickRight.getRawAxis(2));
-		*/
-
-	
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
 
 		float multiplier = (ControllerInput / (float) Math.abs(ControllerInput));
