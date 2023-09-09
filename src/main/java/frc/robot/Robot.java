@@ -179,100 +179,20 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
-		double value = flightStickLeft.getRawAxis(1);
+		double value = flightStickLeft.getRawAxis(2);
 
-		// swerveOne.spin(value);
+		swerveOne.spin(value);
 		// swerveOne.spin(0.25);
 		// swerveTwo.spin(value);
 		// swerveThree.spin(value);
 		// swerveFour.spin(value);
 
-		double valueSpin = flightStickLeft.getRawAxis(2);
+		double valueDrive = flightStickLeft.getRawAxis(1);
 
-		// swerveOne.Drive(valueSpin);
+		swerveOne.Drive(valueDrive);
 		// swerveTwo.Drive(valueSpin);
 		// swerveThree.Drive(valueSpin);
 		// swerveFour.Drive(valueSpin);
-
-		System.out.println(swerveOne.turningEncoder.getPosition());
-
-		if (flightStickRight.getRawButton(1)) {
-			if (DriveEnabled) {
-				swerveOne.Drive(0.1);
-				swerveOne.spin(0);
-			} else if (SpinEnabled) {
-				swerveOne.spin(0.1);
-				swerveOne.Drive(0);
-			}
-		}else {
-			swerveOne.Drive(0);
-			swerveOne.spin(0);
-		}
-		
-		if (flightStickRight.getRawButtonPressed(2)) {
-			if (DriveEnabled) {
-				DriveEnabled = false;
-				SpinEnabled = true;
-			} else {
-				DriveEnabled = true;
-				SpinEnabled = false;
-			}
-		}
-
-		if (flightStickLeft.getRawButtonReleased(1)) {
-			swerveOne.Drive(0);
-			swerveOne.spin(0);
-		}
-
-		/*
-		 * if (DriveEnabled=true){
-		 * flightStickLeft.getRawButtonPressed(1);
-		 * 
-		 * swerveOne.Drive(0.3);
-		 * }
-		 * if (SpinEnabled=true){
-		 * flightStickLeft.getRawButtonPressed(1);
-		 * 
-		 * swerveOne.spin(0.3);
-		 * }
-		 * if (DriveEnabled=false){
-		 * 
-		 * 
-		 * swerveOne.Drive(0.0);
-		 * }
-		 * if (SpinEnabled=false){
-		 * 
-		 * 
-		 * swerveOne.spin(0.0);
-		 * }
-		 * if (flightStickLeft.getRawButtonReleased(1)) {
-		 * SpinEnabled = false;
-		 * DriveEnabled =false;
-		 * 
-		 * }
-		 * if (flightStickLeft.getRawButtonPressed(3)) {
-		 * SpinEnabled = true;
-		 * 
-		 * 
-		 * }if (flightStickLeft.getRawButtonPressed(4)) {
-		 * DriveEnabled = true;
-		 * 
-		 * }
-		 */
-
-		/*
-		 * if (operator.getRawButton(7)) {
-		 * arm.set(0.4);
-		 * 
-		 * } else if (operator.getRawButton(5)) {
-		 * arm.set(-0.4);
-		 * 
-		 * } else {
-		 * arm.set(0.0);
-		 * 
-		 * }
-		 */
-
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {

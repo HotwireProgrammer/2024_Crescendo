@@ -22,8 +22,6 @@ public class SwerveModule {
     }
 
     public void Drive(double speed) {
-        System.out.println(turningEncoder.getPosition());
-
         drive.set(speed);
     }
       
