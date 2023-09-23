@@ -38,6 +38,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -45,6 +46,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.autostep.*;
+import frc.robot.swerve.DriveSubsystem;
+import frc.robot.swerve.Constants.OIConstants;
 import edu.wpi.first.wpilibj.Compressor;
 import java.util.*;
 
@@ -75,10 +78,11 @@ public class Robot extends TimedRobot {
 		linear, squared, tangent, inverse, cb, cbrt,
 	}
 
-	public SwerveModule swerveOne = new SwerveModule(50, 49);
+	//public SwerveModule swerveOne = new SwerveModule(50, 49);
 	// public SwerveModule swerveTwo = new SwerveModule(34, 44);
 	// public SwerveModule swerveThree = new SwerveModule(32, 42);
 	// public SwerveModule swerveFour = new SwerveModule(31, 41);
+	public DriveSubsystem swerveDrive =  new DriveSubsystem();
 
 	public DriverStation driverStation;
 	public RobotState currentState;
@@ -179,6 +183,13 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
+
+		swerveDrive.drive(
+                -MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+                true, true);
+
 /* 
 		if(flightStickLeft.getRawButton(1)) {
 
@@ -198,17 +209,15 @@ public class Robot extends TimedRobot {
 */
 
 
-		double value = flightStickLeft.getRawAxis(2);
-
-		swerveOne.Spin(value);
+		// double value = flightStickLeft.getRawAxis(2);
+		// swerveOne.Spin(value);
 		// swerveOne.spin(0.25);
 		// swerveTwo.spin(value);
 		// swerveThree.spin(value);
 		// swerveFour.spin(value);
 
-		double valueDrive = flightStickLeft.getRawAxis(1);
-
-		swerveOne.Drive(valueDrive);
+		// double valueDrive = flightStickLeft.getRawAxis(1);
+		// swerveOne.Drive(valueDrive);
 		// swerveTwo.Drive(valueSpin);
 		// swerveThree.Drive(valueSpin);
 		// swerveFour.Drive(valueSpin);
