@@ -25,7 +25,7 @@ public class SwerveModule {
         drive.set(speed);
     }
       
-    public void spin(double speed) {
+    public void Spin(double speed) {
         spin.set(speed);
     }
 }

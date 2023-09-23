@@ -179,9 +179,28 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
+/* 
+		if(flightStickLeft.getRawButton(1)) {
+
+			swerveOne.Drive(0.5);
+		} else if(flightStickLeft.getRawButton(1)) {
+
+			swerveOne.Drive(0);
+		}
+
+		if(flightStickLeft.getRawButton(2)) {
+
+			swerveOne.Drive(-0.5);
+		} else if(flightStickLeft.getRawButton(2)) {
+
+			swerveOne.Drive(0);
+		}
+*/
+
+
 		double value = flightStickLeft.getRawAxis(2);
 
-		swerveOne.spin(value);
+		swerveOne.Spin(value);
 		// swerveOne.spin(0.25);
 		// swerveTwo.spin(value);
 		// swerveThree.spin(value);
