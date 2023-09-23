@@ -70,7 +70,7 @@ public class Robot extends TimedRobot {
 	public boolean arcadeDrive = false;
 	public Joystick flightStickLeft;
 	public Joystick flightStickRight;
-	public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushed);
+	//public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushless);
 
 	public Limelight limelight = new Limelight();
 
@@ -78,11 +78,11 @@ public class Robot extends TimedRobot {
 		linear, squared, tangent, inverse, cb, cbrt,
 	}
 
-	//public SwerveModule swerveOne = new SwerveModule(50, 49);
+	// public SwerveModule swerveOne = new SwerveModule(50, 49);
 	// public SwerveModule swerveTwo = new SwerveModule(34, 44);
 	// public SwerveModule swerveThree = new SwerveModule(32, 42);
 	// public SwerveModule swerveFour = new SwerveModule(31, 41);
-	public DriveSubsystem swerveDrive =  new DriveSubsystem();
+	public DriveSubsystem swerveDrive = new DriveSubsystem();
 
 	public DriverStation driverStation;
 	public RobotState currentState;
@@ -185,29 +185,28 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 
 		swerveDrive.drive(
-                -MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
-                true, true);
+				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+				false, false);
 
-/* 
-		if(flightStickLeft.getRawButton(1)) {
-
-			swerveOne.Drive(0.5);
-		} else if(flightStickLeft.getRawButton(1)) {
-
-			swerveOne.Drive(0);
-		}
-
-		if(flightStickLeft.getRawButton(2)) {
-
-			swerveOne.Drive(-0.5);
-		} else if(flightStickLeft.getRawButton(2)) {
-
-			swerveOne.Drive(0);
-		}
-*/
-
+		/*
+		 * if(flightStickLeft.getRawButton(1)) {
+		 * 
+		 * swerveOne.Drive(0.5);
+		 * } else if(flightStickLeft.getRawButton(1)) {
+		 * 
+		 * swerveOne.Drive(0);
+		 * }
+		 * 
+		 * if(flightStickLeft.getRawButton(2)) {
+		 * 
+		 * swerveOne.Drive(-0.5);
+		 * } else if(flightStickLeft.getRawButton(2)) {
+		 * 
+		 * swerveOne.Drive(0);
+		 * }
+		 */
 
 		// double value = flightStickLeft.getRawAxis(2);
 		// swerveOne.Spin(value);
