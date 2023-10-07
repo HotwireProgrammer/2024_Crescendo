@@ -8,11 +8,11 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxAbsoluteEncoder.Type;
 
 public class SwerveModule {
-    
+        
     public CANSparkMax drive;
     public CANSparkMax spin;
     public AbsoluteEncoder turningEncoder;
-
+    
     public SwerveModule(int driveNumber, int spinNumber)
     {
         drive = new CANSparkMax(driveNumber, MotorType.kBrushless);

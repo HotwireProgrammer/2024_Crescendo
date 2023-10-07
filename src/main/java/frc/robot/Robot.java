@@ -10,7 +10,11 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
+import edu.wpi.first.wpilibj.simulation.SolenoidSim;
+
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator.Validity;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.cscore.UsbCamera;
@@ -70,7 +74,7 @@ public class Robot extends TimedRobot {
 	public boolean arcadeDrive = false;
 	public Joystick flightStickLeft;
 	public Joystick flightStickRight;
-	//public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushless);
+	// public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushless);
 
 	public Limelight limelight = new Limelight();
 
@@ -96,6 +100,12 @@ public class Robot extends TimedRobot {
 	public int currentAutoStep = 0;
 
 	public String autoSelectKey = "autoMode";
+
+	public DoubleSolenoid solenoid1 = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 8, 9);
+	public DoubleSolenoid solenoid2 = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 10, 11);
+
+	public CANSparkMax motorGripper = new CANSparkMax(18, MotorType.kBrushless);
+	public CANSparkMax armExtend = new CANSparkMax(19, MotorType.kBrushless);
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -125,6 +135,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autonomousInit() {
+		/* 
 		currentAutoStep = 0;
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(1);
 
@@ -143,9 +154,15 @@ public class Robot extends TimedRobot {
 			autonomousSelected = firstAuto;
 		}
 		autonomousSelected.get(0).Begin();
+		*/
 	}
 
 	public void autonomousPeriodic() {
+
+		solenoid1.set(Value.kReverse);
+		solenoid2.set(Value.kReverse);
+
+		/* 
 		SmartDashboard.putBoolean("RobotEnabled", true);
 
 		// autonomous loop
@@ -163,6 +180,7 @@ public class Robot extends TimedRobot {
 		} else {
 			// stop drivetrain
 		}
+		*/
 
 	}
 
@@ -186,40 +204,56 @@ public class Robot extends TimedRobot {
 
 		swerveDrive.drive(
 				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+				MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
 				false, false);
 
-		/*
-		 * if(flightStickLeft.getRawButton(1)) {
-		 * 
-		 * swerveOne.Drive(0.5);
-		 * } else if(flightStickLeft.getRawButton(1)) {
-		 * 
-		 * swerveOne.Drive(0);
-		 * }
-		 * 
-		 * if(flightStickLeft.getRawButton(2)) {
-		 * 
-		 * swerveOne.Drive(-0.5);
-		 * } else if(flightStickLeft.getRawButton(2)) {
-		 * 
-		 * swerveOne.Drive(0);
-		 * }
-		 */
+ 
+		 if (operator.getRawButton(4)) {
 
-		// double value = flightStickLeft.getRawAxis(2);
-		// swerveOne.Spin(value);
-		// swerveOne.spin(0.25);
-		// swerveTwo.spin(value);
-		// swerveThree.spin(value);
-		// swerveFour.spin(value);
+			solenoid1.set(Value.kReverse);
+			solenoid2.set(Value.kForward);
+		}
 
-		// double valueDrive = flightStickLeft.getRawAxis(1);
-		// swerveOne.Drive(valueDrive);
-		// swerveTwo.Drive(valueSpin);
-		// swerveThree.Drive(valueSpin);
-		// swerveFour.Drive(valueSpin);
+		if (operator.getRawButton(3)) {
+			solenoid1.set(Value.kReverse);
+			solenoid2.set(Value.kReverse);
+		}
+
+		if (operator.getRawButton(2)) {
+			solenoid1.set(Value.kForward);
+			solenoid2.set(Value.kReverse);
+
+		}  
+
+
+
+		
+
+
+		// cube close
+		if (operator.getRawButton(7)) {
+			motorGripper.set(0.2f);
+
+		} else if (operator.getRawButton(5)) {
+			// cone close
+			motorGripper.set(0.5f);
+
+		} else if (operator.getRawButton(8)) {
+			motorGripper.set(-0.2f);
+
+		} else {
+			motorGripper.set(0.0f);
+		}
+
+		// arm
+		if (operator.getRawAxis(1) > 0.1f) {
+			armExtend.set(-0.5f);
+		} else if (operator.getRawAxis(1) < -0.1f) {
+			armExtend.set(0.5f);
+		} else {
+			armExtend.set(0.0f);
+		}
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
