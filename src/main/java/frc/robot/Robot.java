@@ -187,6 +187,7 @@ public class Robot extends TimedRobot {
 
 	public void teleopInit() {
 
+		holding = false;
 		swerveDrive.zeroHeading();
 
 		limelight.SetLight(false);
