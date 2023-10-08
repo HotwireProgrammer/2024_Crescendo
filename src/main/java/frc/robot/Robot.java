@@ -66,8 +66,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class Robot extends TimedRobot {
 
-	// Sensors
-	public static AHRS sensorNavx = new AHRS();
 
 	// Joysticks
 	public Joystick operator;
@@ -189,7 +187,7 @@ public class Robot extends TimedRobot {
 
 	public void teleopInit() {
 
-		sensorNavx.reset();
+		swerveDrive.zeroHeading();
 
 		limelight.SetLight(false);
 
@@ -248,7 +246,7 @@ public class Robot extends TimedRobot {
 				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
 				MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
-				false, false);
+				true, true);
 
 		if (operator.getRawButton(4)) {
 
