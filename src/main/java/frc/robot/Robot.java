@@ -107,6 +107,8 @@ public class Robot extends TimedRobot {
 	public CANSparkMax motorGripper = new CANSparkMax(18, MotorType.kBrushless);
 	public CANSparkMax armExtend = new CANSparkMax(19, MotorType.kBrushless);
 
+	public boolean holding = false;
+
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
 	}
@@ -135,26 +137,27 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autonomousInit() {
-		/* 
-		currentAutoStep = 0;
-		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(1);
-
-		operator = new Joystick(1);
-
-		limelight.SetLight(true);
-
-		// Autonomous selection
-
-		double autoChoice = SmartDashboard.getNumber(autoSelectKey, 0);
-
-		// firstAuto.add(new TimedForward(driveTrain, 1, 0.2f));
-		firstAuto = new LinkedList<AutoStep>();
-
-		if (autoChoice == 0) {
-			autonomousSelected = firstAuto;
-		}
-		autonomousSelected.get(0).Begin();
-		*/
+		/*
+		 * currentAutoStep = 0;
+		 * NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").
+		 * setNumber(1);
+		 * 
+		 * operator = new Joystick(1);
+		 * 
+		 * limelight.SetLight(true);
+		 * 
+		 * // Autonomous selection
+		 * 
+		 * double autoChoice = SmartDashboard.getNumber(autoSelectKey, 0);
+		 * 
+		 * // firstAuto.add(new TimedForward(driveTrain, 1, 0.2f));
+		 * firstAuto = new LinkedList<AutoStep>();
+		 * 
+		 * if (autoChoice == 0) {
+		 * autonomousSelected = firstAuto;
+		 * }
+		 * autonomousSelected.get(0).Begin();
+		 */
 	}
 
 	public void autonomousPeriodic() {
@@ -162,25 +165,25 @@ public class Robot extends TimedRobot {
 		solenoid1.set(Value.kReverse);
 		solenoid2.set(Value.kReverse);
 
-		/* 
-		SmartDashboard.putBoolean("RobotEnabled", true);
-
-		// autonomous loop
-		// System.out.println("Current auto step " + currentAutoStep);
-		if (currentAutoStep < autonomousSelected.size()) {
-
-			autonomousSelected.get(currentAutoStep).Update();
-
-			if (autonomousSelected.get(currentAutoStep).isDone) {
-				currentAutoStep = currentAutoStep + 1;
-				if (currentAutoStep < autonomousSelected.size()) {
-					autonomousSelected.get(currentAutoStep).Begin();
-				}
-			}
-		} else {
-			// stop drivetrain
-		}
-		*/
+		/*
+		 * SmartDashboard.putBoolean("RobotEnabled", true);
+		 * 
+		 * // autonomous loop
+		 * // System.out.println("Current auto step " + currentAutoStep);
+		 * if (currentAutoStep < autonomousSelected.size()) {
+		 * 
+		 * autonomousSelected.get(currentAutoStep).Update();
+		 * 
+		 * if (autonomousSelected.get(currentAutoStep).isDone) {
+		 * currentAutoStep = currentAutoStep + 1;
+		 * if (currentAutoStep < autonomousSelected.size()) {
+		 * autonomousSelected.get(currentAutoStep).Begin();
+		 * }
+		 * }
+		 * } else {
+		 * // stop drivetrain
+		 * }
+		 */
 
 	}
 
@@ -202,14 +205,52 @@ public class Robot extends TimedRobot {
 
 	public void teleopPeriodic() {
 
+		if (operator.getRawButton(8)) {
+			holding = false;
+		}
+
+		if (operator.getRawButtonPressed(5)) {
+			if (holding) {
+				holding = false;
+			} else {
+				holding = true;
+			}
+		}
+
+		// cube
+		if (holding) {
+			motorGripper.set(0.5f);
+		} else {
+			if (operator.getRawButton(8)) {
+				motorGripper.set(-0.2f);
+			} else {
+				motorGripper.set(0.0f);
+			}
+		}
+
+		/*
+		 * if (holding) {
+		 * run motor
+		 * } else {
+		 * stop motor
+		 * }
+		 * 
+		 * if (buttonPressed) {
+		 * if (holding) {
+		 * holding = false;
+		 * } elese {
+		 * holding = true;
+		 * }
+		 * }
+		 */
+
 		swerveDrive.drive(
 				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
 				MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
 				false, false);
 
- 
-		 if (operator.getRawButton(4)) {
+		if (operator.getRawButton(4)) {
 
 			solenoid1.set(Value.kReverse);
 			solenoid2.set(Value.kForward);
@@ -224,27 +265,24 @@ public class Robot extends TimedRobot {
 			solenoid1.set(Value.kForward);
 			solenoid2.set(Value.kReverse);
 
-		}  
-
-
-
-		
-
+		}
 
 		// cube close
-		if (operator.getRawButton(7)) {
-			motorGripper.set(0.2f);
-
-		} else if (operator.getRawButton(5)) {
-			// cone close
-			motorGripper.set(0.5f);
-
-		} else if (operator.getRawButton(8)) {
-			motorGripper.set(-0.2f);
-
-		} else {
-			motorGripper.set(0.0f);
-		}
+		/*
+		 * if (operator.getRawButton(7)) {
+		 * motorGripper.set(0.2f);
+		 * 
+		 * } else if (operator.getRawButton(5)) {
+		 * // cone close
+		 * motorGripper.set(0.5f);
+		 * 
+		 * } else if (operator.getRawButton(8)) {
+		 * motorGripper.set(-0.2f);
+		 * 
+		 * } else {
+		 * motorGripper.set(0.0f);
+		 * }
+		 */
 
 		// arm
 		if (operator.getRawAxis(1) > 0.1f) {
