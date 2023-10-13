@@ -1,28 +1,24 @@
 package frc.robot.autostep;
 
 import frc.robot.Gripper;
+import frc.robot.Robot;
 
 public class GripperStep extends AutoStep {
 
-    public Gripper gripper;
-    public boolean doClose;
+    Robot robot;
+    boolean state;
 
-    public GripperStep(Gripper gripper, boolean doClose) {
+    public GripperStep(Robot robot, boolean state) {
         super();
-        this.gripper = gripper;
-        this.doClose = doClose;
+        this.robot = robot;
+        this.state = state;
     }
 
     public void Begin() {
-
+        robot.autoGripperSet = state;
     }
 
     public void Update() {
-        if (doClose) {
-            gripper.AutoClose();
-        } else {
-            gripper.AutoClear();
-        }
         isDone=true;
     }
 }

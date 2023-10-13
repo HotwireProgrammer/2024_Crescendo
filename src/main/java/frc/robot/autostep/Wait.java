@@ -7,21 +7,17 @@ public class Wait extends AutoStep {
 
     public Timer driveTimer;
     public float length;
-    
-    public DriveTrain driveTrain;
 
-    public Wait(DriveTrain driveTrain, float length) {
+    public Wait(float length) {
         super();
         this.length = length;
         driveTimer = new Timer();
-        this.driveTrain = driveTrain;
     }
 
     public void Begin() {
         driveTimer = new Timer();
         driveTimer.reset();
         driveTimer.start();
-        driveTrain.SetBothSpeed(0.0f);
     }
 
     public void Update() {

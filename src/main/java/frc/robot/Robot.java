@@ -66,7 +66,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class Robot extends TimedRobot {
 
-
 	// Joysticks
 	public Joystick operator;
 	public boolean arcadeDrive = false;
@@ -93,6 +92,8 @@ public class Robot extends TimedRobot {
 
 	// Auto
 	public LinkedList<AutoStep> firstAuto;
+
+	public boolean autoGripperSet;
 
 	public LinkedList<AutoStep> autonomousSelected;
 	public int currentAutoStep = 0;
@@ -135,54 +136,51 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autonomousInit() {
-		/*
-		 * currentAutoStep = 0;
-		 * NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").
-		 * setNumber(1);
-		 * 
-		 * operator = new Joystick(1);
-		 * 
-		 * limelight.SetLight(true);
-		 * 
-		 * // Autonomous selection
-		 * 
-		 * double autoChoice = SmartDashboard.getNumber(autoSelectKey, 0);
-		 * 
-		 * // firstAuto.add(new TimedForward(driveTrain, 1, 0.2f));
-		 * firstAuto = new LinkedList<AutoStep>();
-		 * 
-		 * if (autoChoice == 0) {
-		 * autonomousSelected = firstAuto;
-		 * }
-		 * autonomousSelected.get(0).Begin();
-		 */
+		currentAutoStep = 0;
+
+		firstAuto = new LinkedList<AutoStep>();
+		firstAuto.add(new SolenoidStep(solenoid1, Value.kForward));
+		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
+		firstAuto.add(new GripperStep(this, true));
+		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, 0.4f));
+		firstAuto.add(new Wait(0.4f));
+		firstAuto.add(new GripperStep(this, false));
+		firstAuto.add(new SolenoidStep(solenoid1, Value.kReverse));
+		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
+		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, -0.4f)); 
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.35f,  0f,  2.4f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.0f,  0.25f,  2.4f));
+
+
+		autonomousSelected = firstAuto;
+		autonomousSelected.get(0).Begin();
+		swerveDrive.zeroHeading();
 	}
 
 	public void autonomousPeriodic() {
 
-		solenoid1.set(Value.kReverse);
-		solenoid2.set(Value.kReverse);
+		// autonomous loop
+		// System.out.println("Current auto step " + currentAutoStep);
+		if (currentAutoStep < autonomousSelected.size()) {
 
-		/*
-		 * SmartDashboard.putBoolean("RobotEnabled", true);
-		 * 
-		 * // autonomous loop
-		 * // System.out.println("Current auto step " + currentAutoStep);
-		 * if (currentAutoStep < autonomousSelected.size()) {
-		 * 
-		 * autonomousSelected.get(currentAutoStep).Update();
-		 * 
-		 * if (autonomousSelected.get(currentAutoStep).isDone) {
-		 * currentAutoStep = currentAutoStep + 1;
-		 * if (currentAutoStep < autonomousSelected.size()) {
-		 * autonomousSelected.get(currentAutoStep).Begin();
-		 * }
-		 * }
-		 * } else {
-		 * // stop drivetrain
-		 * }
-		 */
+			autonomousSelected.get(currentAutoStep).Update();
 
+			if (autonomousSelected.get(currentAutoStep).isDone) {
+				currentAutoStep = currentAutoStep + 1;
+				if (currentAutoStep < autonomousSelected.size()) {
+					autonomousSelected.get(currentAutoStep).Begin();
+				}
+			}
+		} else {
+			// stop drivetrain
+            swerveDrive.drive(0, 0, 0, true, true);
+		}
+
+		if (autoGripperSet) {
+			motorGripper.set(0.7f);
+		} else {
+			motorGripper.set(-0.2f);
+		}
 	}
 
 	public void teleopInit() {
@@ -244,22 +242,22 @@ public class Robot extends TimedRobot {
 		 */
 
 		swerveDrive.drive(
-				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-				MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+				MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
 				true, true);
 
 		if (operator.getRawButton(4)) {
-
+		//up
 			solenoid1.set(Value.kReverse);
 			solenoid2.set(Value.kForward);
 		}
-
+		//middle 
 		if (operator.getRawButton(3)) {
 			solenoid1.set(Value.kReverse);
 			solenoid2.set(Value.kReverse);
 		}
-
+		//down
 		if (operator.getRawButton(2)) {
 			solenoid1.set(Value.kForward);
 			solenoid2.set(Value.kReverse);
