@@ -150,8 +150,9 @@ public class Robot extends TimedRobot {
 		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
 		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, -0.4f)); 
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.35f,  0f,  2.4f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.0f,  0.25f,  2.4f));
 
-
+		
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
@@ -186,7 +187,6 @@ public class Robot extends TimedRobot {
 	public void teleopInit() {
 
 		holding = false;
-		swerveDrive.zeroHeading();
 
 		limelight.SetLight(false);
 
@@ -301,9 +301,16 @@ public class Robot extends TimedRobot {
 		operator = new Joystick(1);
 		flightStickLeft = new Joystick(3);
 		flightStickRight = new Joystick(2);
+
+		swerveDrive.zeroHeading();
 	}
 
 	public void testPeriodic() {
+		swerveDrive.drive(
+			-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
+			MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+			-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+			true, true);
 
 	}
 
