@@ -139,17 +139,17 @@ public class Robot extends TimedRobot {
 		currentAutoStep = 0;
 
 		firstAuto = new LinkedList<AutoStep>();
+		firstAuto.add(new GripperStep(this, true));
+		firstAuto.add(new Wait(0.5f));
 		firstAuto.add(new SolenoidStep(solenoid1, Value.kForward));
 		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
-		firstAuto.add(new GripperStep(this, true));
 		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, 0.4f));
-		firstAuto.add(new Wait(0.4f));
+		firstAuto.add(new Wait(0.5f));
 		firstAuto.add(new GripperStep(this, false));
 		firstAuto.add(new SolenoidStep(solenoid1, Value.kReverse));
 		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
 		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, -0.4f)); 
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.35f,  0f,  2.4f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.0f,  0.25f,  2.4f));
 
 
 		autonomousSelected = firstAuto;
@@ -225,30 +225,14 @@ public class Robot extends TimedRobot {
 			}
 		}
 
-		/*
-		 * if (holding) {
-		 * run motor
-		 * } else {
-		 * stop motor
-		 * }
-		 * 
-		 * if (buttonPressed) {
-		 * if (holding) {
-		 * holding = false;
-		 * } elese {
-		 * holding = true;
-		 * }
-		 * }
-		 */
-
 		swerveDrive.drive(
 				MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
 				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
 				true, true);
 
-		if (operator.getRawButton(4)) {
 		//up
+		if (operator.getRawButton(4)) {
 			solenoid1.set(Value.kReverse);
 			solenoid2.set(Value.kForward);
 		}
