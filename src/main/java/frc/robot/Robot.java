@@ -332,7 +332,6 @@ public class Robot extends TimedRobot {
 			MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 			-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
 			true, false);
-
 	}
 
 	public static float Lerp(float v0, float v1, float t) {
