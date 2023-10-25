@@ -214,7 +214,16 @@ public class Robot extends TimedRobot {
 			}
 		}
 
-		// cube
+	/*	if (operator.getRawButtonPressed(7)) {
+			if (holding) {
+				holding = false;
+			} else {
+				holding = true;
+			}
+		}
+	*/
+
+		// cone
 		if (holding) {
 			motorGripper.set(0.5f);
 		} else {
@@ -224,6 +233,18 @@ public class Robot extends TimedRobot {
 				motorGripper.set(0.0f);
 			}
 		}
+
+	/*	//cube
+		if (holding) {
+			motorGripper.set(0.2f);
+		} else {
+			if (operator.getRawButton(8)) {
+				motorGripper.set(-0.2f);
+			} else {
+				motorGripper.set(0.0f);
+			}
+		}
+	*/
 
 		swerveDrive.drive(
 				MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
@@ -310,7 +331,7 @@ public class Robot extends TimedRobot {
 			-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
 			MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
 			-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
-			true, true);
+			true, false);
 
 	}
 
