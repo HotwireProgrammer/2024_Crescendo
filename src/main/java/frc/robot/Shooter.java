@@ -60,7 +60,7 @@ public class Shooter {
         float farY = 15f;// 20.7
 
         float dist = Math.abs(farY - nearY);
-        float distT = (float) limelight.gety() - 15.0f;
+        float distT = (float) limelight.GetY() - 15.0f;
         float distCurve = (1.546f * (distT * distT)) - (65.06f * distT) + 2286.0f + 150.0f;
         float relDist = distCurve;
 
@@ -74,7 +74,7 @@ public class Shooter {
         if ((limelight.GetArea() == 0)) {
             rpmTarget = 1900;
         } else {
-            if (limelight.gety() < 15) {
+            if (limelight.GetY() < 15) {
                 rpmTarget = 2300;
             } else {
                 rpmTarget = relDist;

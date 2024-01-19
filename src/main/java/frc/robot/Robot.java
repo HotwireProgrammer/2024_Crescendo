@@ -79,32 +79,22 @@ public class Robot extends TimedRobot {
 		linear, squared, tangent, inverse, cb, cbrt,
 	}
 
-	// public SwerveModule swerveOne = new SwerveModule(50, 49);
-	// public SwerveModule swerveTwo = new SwerveModule(34, 44);
-	// public SwerveModule swerveThree = new SwerveModule(32, 42);
-	// public SwerveModule swerveFour = new SwerveModule(31, 41);
 	public DriveSubsystem swerveDrive = new DriveSubsystem();
-
-	public DriverStation driverStation;
-	public RobotState currentState;
-	public boolean DriveEnabled;
-	public boolean SpinEnabled;
 
 	// Auto
 	public LinkedList<AutoStep> firstAuto;
-
-	public boolean autoGripperSet;
 
 	public LinkedList<AutoStep> autonomousSelected;
 	public int currentAutoStep = 0;
 
 	public String autoSelectKey = "autoMode";
 
-	public DoubleSolenoid solenoid1 = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 8, 9);
-	public DoubleSolenoid solenoid2 = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 10, 11);
-
 	public CANSparkMax motorGripper = new CANSparkMax(18, MotorType.kBrushless);
 	public CANSparkMax armExtend = new CANSparkMax(19, MotorType.kBrushless);
+
+	public TalonSRX one = new TalonSRX(35);
+	public TalonSRX two = new TalonSRX(50);
+
 
 	public boolean holding = false;
 
@@ -135,24 +125,13 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putBoolean("RobotEnabled", false);
 	}
 
+	// fix autonomous spinning
+
 	public void autonomousInit() {
 		currentAutoStep = 0;
 
 		firstAuto = new LinkedList<AutoStep>();
-		firstAuto.add(new GripperStep(this, true));
-		firstAuto.add(new Wait(0.5f));
-		firstAuto.add(new SolenoidStep(solenoid1, Value.kForward));
-		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
-		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, 0.4f));
-		firstAuto.add(new Wait(0.5f));
-		firstAuto.add(new GripperStep(this, false));
-		firstAuto.add(new SolenoidStep(solenoid1, Value.kReverse));
-		firstAuto.add(new SolenoidStep(solenoid2, Value.kReverse));
-		firstAuto.add(new MotorMoveStep(armExtend, 1.25f, -0.4f)); 
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.35f,  0f,  2.4f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive,  -0f,  0.0f,  0.25f,  2.4f));
 
-		
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
@@ -174,19 +153,12 @@ public class Robot extends TimedRobot {
 			}
 		} else {
 			// stop drivetrain
-            swerveDrive.drive(0, 0, 0, true, true);
+			swerveDrive.drive(0, 0, 0, true, true);
 		}
 
-		if (autoGripperSet) {
-			motorGripper.set(0.7f);
-		} else {
-			motorGripper.set(-0.2f);
-		}
 	}
 
 	public void teleopInit() {
-
-		holding = false;
 
 		limelight.SetLight(false);
 
@@ -202,97 +174,25 @@ public class Robot extends TimedRobot {
 
 	public void teleopPeriodic() {
 
-		if (operator.getRawButton(8)) {
-			holding = false;
-		}
+		System.out.println(flightStickLeft.getRawAxis(0));
+		one.set(ControlMode.PercentOutput, flightStickLeft.getRawAxis(0));
+		two.set(ControlMode.PercentOutput, flightStickRight.getRawAxis(0));
 
-		if (operator.getRawButtonPressed(5)) {
-			if (holding) {
-				holding = false;
-			} else {
-				holding = true;
-			}
-		}
 
-	/*	if (operator.getRawButtonPressed(7)) {
-			if (holding) {
-				holding = false;
-			} else {
-				holding = true;
-			}
-		}
-	*/
+		if (flightStickLeft.getRawButton(2)) {
+			limelight.PositionDistance(swerveDrive);
 
-		// cone
-		if (holding) {
-			motorGripper.set(0.5f);
 		} else {
-			if (operator.getRawButton(8)) {
-				motorGripper.set(-0.2f);
-			} else {
-				motorGripper.set(0.0f);
-			}
+			swerveDrive.drive(
+					MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
+					-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+					-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+					true, true);
 		}
 
-	/*	//cube
-		if (holding) {
-			motorGripper.set(0.2f);
-		} else {
-			if (operator.getRawButton(8)) {
-				motorGripper.set(-0.2f);
-			} else {
-				motorGripper.set(0.0f);
-			}
-		}
-	*/
-
-		swerveDrive.drive(
-				MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
-				true, true);
-
-		//up
-		if (operator.getRawButton(4)) {
-			solenoid1.set(Value.kReverse);
-			solenoid2.set(Value.kForward);
-		}
-		//middle 
-		if (operator.getRawButton(3)) {
-			solenoid1.set(Value.kReverse);
-			solenoid2.set(Value.kReverse);
-		}
-		//down
-		if (operator.getRawButton(2)) {
-			solenoid1.set(Value.kForward);
-			solenoid2.set(Value.kReverse);
-
-		}
-
-		// cube close
-		/*
-		 * if (operator.getRawButton(7)) {
-		 * motorGripper.set(0.2f);
-		 * 
-		 * } else if (operator.getRawButton(5)) {
-		 * // cone close
-		 * motorGripper.set(0.5f);
-		 * 
-		 * } else if (operator.getRawButton(8)) {
-		 * motorGripper.set(-0.2f);
-		 * 
-		 * } else {
-		 * motorGripper.set(0.0f);
-		 * }
-		 */
-
-		// arm
-		if (operator.getRawAxis(1) > 0.1f) {
-			armExtend.set(-0.5f);
-		} else if (operator.getRawAxis(1) < -0.1f) {
-			armExtend.set(0.5f);
-		} else {
-			armExtend.set(0.0f);
+		// zero
+		if (flightStickLeft.getRawButton(1)) {
+			swerveDrive.zeroHeading();
 		}
 	}
 
@@ -328,10 +228,10 @@ public class Robot extends TimedRobot {
 
 	public void testPeriodic() {
 		swerveDrive.drive(
-			-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-			MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
-			-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
-			true, false);
+				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
+				MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+				true, false);
 	}
 
 	public static float Lerp(float v0, float v1, float t) {
