@@ -95,7 +95,6 @@ public class Robot extends TimedRobot {
 	public TalonSRX one = new TalonSRX(35);
 	public TalonSRX two = new TalonSRX(50);
 
-
 	public boolean holding = false;
 
 	public float voltComp(float percent) {
@@ -111,6 +110,8 @@ public class Robot extends TimedRobot {
 		limelight.SetLight(false);
 		limelight.Init();
 		SmartDashboard.putNumber(autoSelectKey, 0);
+
+		swerveDrive.Init();
 	}
 
 	public void disabledInit() {
@@ -167,31 +168,59 @@ public class Robot extends TimedRobot {
 
 		// Controllers
 		operator = new Joystick(1);
-		flightStickLeft = new Joystick(3);
-		flightStickRight = new Joystick(2);
+		// flightStickLeft = new Joystick(3);
+		// flightStickRight = new Joystick(2);
 
 	}
 
 	public void teleopPeriodic() {
 
-		System.out.println(flightStickLeft.getRawAxis(0));
-		one.set(ControlMode.PercentOutput, flightStickLeft.getRawAxis(0));
-		two.set(ControlMode.PercentOutput, flightStickRight.getRawAxis(0));
+		if (operator.getRawButton(1)) {
+			one.set(ControlMode.PercentOutput, -0.5);
+			two.set(ControlMode.PercentOutput, -0.5);
+		} else {
+			one.set(ControlMode.PercentOutput, 0.0);
+			two.set(ControlMode.PercentOutput, 0.0);
+		}
+		// one.set(ControlMode.PercentOutput, operator.getRawAxis(0));
+		// two.set(ControlMode.PercentOutput, operator.getRawAxis(0));
 
+		if (operator.getRawButton(2)) {
+			System.out.println( limelight.GetAprilID() );
+			//swerveDrive.GoToRotation(90);
 
-		if (flightStickLeft.getRawButton(2)) {
-			limelight.PositionDistance(swerveDrive);
+			
+			if (limelight.GetAprilID() == 13) {
+				swerveDrive.GoToRotation(90);
+			} else if (limelight.GetAprilID() == 12) {
+				swerveDrive.GoToRotation(-140);
+			} else if (limelight.GetAprilID() == 11) {
+				swerveDrive.GoToRotation(-30);
+			}
+			
 
 		} else {
+
+			double pow = 2;
+			double axisZero = Math.pow(operator.getRawAxis(0), pow)
+					* (operator.getRawAxis(0) / Math.abs(operator.getRawAxis(0)));
+			double axisOne = Math.pow(operator.getRawAxis(1), pow)
+					* (operator.getRawAxis(1) / Math.abs(operator.getRawAxis(1)));
+
+			if (operator.getRawButton(6)) {
+				axisZero = axisZero * 0.25;
+				axisOne = axisOne * 0.25;
+			}
+
 			swerveDrive.drive(
-					MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-					-MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
-					-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+					MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
+					-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
+					-MathUtil.applyDeadband(operator.getRawAxis(4), OIConstants.kDriveDeadband),
 					true, true);
 		}
 
 		// zero
-		if (flightStickLeft.getRawButton(1)) {
+		if (operator.getRawButton(1)) {
 			swerveDrive.zeroHeading();
 		}
 	}

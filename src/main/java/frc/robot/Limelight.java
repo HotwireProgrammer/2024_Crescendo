@@ -60,13 +60,24 @@ public class Limelight {
         SmartDashboard.putNumber(dDistanceKey, dDistance);
     }
 
-
     public void SetLight(boolean turnOn) {
         if (turnOn) {
             NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
         } else {
             NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);// 1
         }
+    }
+
+    public int GetAprilID() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+        NetworkTableEntry tid = table.getEntry("tid");
+        NetworkTableEntry tv = table.getEntry("tv");
+
+        if (tv.getDouble(0.0f) > 0) {
+            return (int)tid.getDouble(0.0);
+        }
+
+        return 0;        
     }
 
     public double GetArea() {
@@ -164,8 +175,6 @@ public class Limelight {
     }
 
     public void PositionDistance(DriveSubsystem swerve) {
-
-      
 
         // get data from smart dashboard
         pDistance = SmartDashboard.getNumber(pDistanceKey, pDistance);

@@ -2,6 +2,8 @@ package frc.robot.swerve;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.controller.PIDController;
+
 // Copyright (c) FIRST and other WPILib contributors.
 
 // Open Source Software; you can modify and/or share it under the terms of
@@ -17,7 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.swerve.Constants.DriveConstants;
 import frc.robot.swerve.SwerveUtils;
 
@@ -53,9 +55,21 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
 
+  public double prot = 0.015;
+  public double irot = 0.000;
+  public double drot = 0.0;
+  
+  public PIDController pid_rot = new PIDController(prot, irot, drot);
+
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
+
+  String protkey = "drive_rot_p";
+  String irotkey = "drive_rot_i";
+  String drotkey = "drive_rot_d";
+ 
+
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -94,6 +108,12 @@ public class DriveSubsystem extends SubsystemBase {
     return m_odometry.getPoseMeters();
   }
 
+  public void Init() {
+    SmartDashboard.putNumber(protkey, prot);
+    SmartDashboard.putNumber(irotkey, irot);
+    SmartDashboard.putNumber(drotkey, drot);
+  }
+
   /**
    * Resets the odometry to the specified pose.
    *
@@ -109,6 +129,29 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         },
         pose);
+  }
+
+  public void GoToRotation(double targetRotationDegrees) {
+    // get data from smart dashboard
+    prot = SmartDashboard.getNumber(protkey, prot);
+    irot = SmartDashboard.getNumber(irotkey, irot);
+    drot = SmartDashboard.getNumber(drotkey, drot);
+
+    // give data to pid class
+    pid_rot.setP(prot);
+    pid_rot.setI(irot);
+    pid_rot.setD(drot);
+
+    // get current error
+    double x = m_gyro.getYaw();
+    System.out.println(x);
+
+    //System.out.println("yaw - " + m_gyro.getYaw());
+
+    // calculate
+    float pidOut = (float) pid_rot.calculate(x, targetRotationDegrees);
+
+    drive(0, 0, -pidOut, true, true);
   }
 
   /**
