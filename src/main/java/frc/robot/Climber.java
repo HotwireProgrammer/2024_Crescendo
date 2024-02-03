@@ -12,10 +12,18 @@ import jdk.jfr.Percentage;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
+import java.sql.Driver;
+
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
-public class Climber {
+import com.revrobotics.REVLibError;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+
+  public class Climber {
 
     public Boolean solenoidToggle = false;
     public TalonSRX climberOne = new TalonSRX(35);

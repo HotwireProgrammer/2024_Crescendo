@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj.simulation.SolenoidSim;
 
@@ -25,6 +26,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import java.applet.AudioClip;
 import java.nio.Buffer;
 import java.rmi.server.Operation;
+import java.sql.Driver;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
@@ -54,6 +56,7 @@ import frc.robot.swerve.DriveSubsystem;
 import frc.robot.swerve.Constants.OIConstants;
 import edu.wpi.first.wpilibj.Compressor;
 import java.util.*;
+import java.util.ResourceBundle.Control;
 
 //import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.I2C;
@@ -69,8 +72,9 @@ public class Robot extends TimedRobot {
 	// Joysticks
 	public Joystick operator;
 	public boolean arcadeDrive = false;
-	public Joystick flightStickLeft;
-	public Joystick flightStickRight;
+	public Joystick driver;
+	// public Joystick flightStickLeft;
+	// public Joystick flightStickRight;
 	// public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushless);
 
 	public Limelight limelight = new Limelight();
@@ -89,13 +93,20 @@ public class Robot extends TimedRobot {
 
 	public String autoSelectKey = "autoMode";
 
-	public CANSparkMax motorGripper = new CANSparkMax(18, MotorType.kBrushless);
-	public CANSparkMax armExtend = new CANSparkMax(19, MotorType.kBrushless);
-
 	public TalonSRX one = new TalonSRX(35);
 	public TalonSRX two = new TalonSRX(50);
+	public TalonSRX three = new TalonSRX(1);
+	public TalonSRX intake = new TalonSRX(11);
+	public CANSparkMax climberOne = new CANSparkMax(19, MotorType.kBrushless);
+	public CANSparkMax climberTwo = new CANSparkMax(14, MotorType.kBrushless);
+	public CANSparkMax wench = new CANSparkMax(18, MotorType.kBrushless);
+	public DigitalInput limitSwitchOne = new DigitalInput(0);
+	public DigitalInput limitSwitchTwo = new DigitalInput(1);
 
 	public boolean holding = false;
+
+	public int climbStep = 0;
+	public Timer climbMoveTimer;
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -117,9 +128,10 @@ public class Robot extends TimedRobot {
 	public void disabledInit() {
 
 		// Controllers
-		operator = new Joystick(1);
-		flightStickLeft = new Joystick(3);
-		flightStickRight = new Joystick(2);
+		operator = new Joystick(2);
+		driver = new Joystick(1);
+		// flightStickLeft = new Joystick(3);
+		// flightStickRight = new Joystick(2);
 	}
 
 	public void disabledPeriodic() {
@@ -167,47 +179,116 @@ public class Robot extends TimedRobot {
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
 
 		// Controllers
-		operator = new Joystick(1);
+		driver = new Joystick(1);
+		operator = new Joystick(2);
 		// flightStickLeft = new Joystick(3);
 		// flightStickRight = new Joystick(2);
 
 	}
 
+	public void ClimberArmsUp(boolean up) {
+		if (up && !limitSwitchOne.get()) {
+			climberOne.set(0.05);
+		} else {
+			climberOne.set(0.0);
+		}
+
+		if (up && !limitSwitchTwo.get()) {
+			climberTwo.set(-0.05);
+		} else {
+			climberTwo.set(0.0);
+		}
+	}
+
 	public void teleopPeriodic() {
 
-		if (operator.getRawButton(1)) {
-			one.set(ControlMode.PercentOutput, -0.5);
-			two.set(ControlMode.PercentOutput, -0.5);
-		} else {
-			one.set(ControlMode.PercentOutput, 0.0);
-			two.set(ControlMode.PercentOutput, 0.0);
+		boolean armsUp = false;
+		if (operator.getRawButton(4)) {
+			armsUp = true;
 		}
-		// one.set(ControlMode.PercentOutput, operator.getRawAxis(0));
-		// two.set(ControlMode.PercentOutput, operator.getRawAxis(0));
 
-		if (operator.getRawButton(2)) {
-			System.out.println( limelight.GetAprilID() );
-			//swerveDrive.GoToRotation(90);
+		if (operator.getRawAxis(3) > 0.01) {
+			wench.set(operator.getRawAxis(3));
+		} else if (operator.getRawAxis(2) > 0.01) {
+			wench.set(-operator.getRawAxis(2));
+		} else {
+			wench.set(0);
+		}
 
-			
-			if (limelight.GetAprilID() == 13) {
-				swerveDrive.GoToRotation(90);
-			} else if (limelight.GetAprilID() == 12) {
-				swerveDrive.GoToRotation(-140);
-			} else if (limelight.GetAprilID() == 11) {
-				swerveDrive.GoToRotation(-30);
+		if (operator.getRawButton(6)) {
+			// top
+			one.set(TalonSRXControlMode.PercentOutput, -0.50);
+			// bottom
+			two.set(TalonSRXControlMode.PercentOutput, -0.45);
+
+			System.out.println("one " + one.getSelectedSensorVelocity() + " two " + two.getSelectedSensorVelocity());
+		} else {
+			one.set(TalonSRXControlMode.PercentOutput, 0);
+			two.set(TalonSRXControlMode.PercentOutput, 0);
+		}
+
+		if (operator.getRawButton(5)) {
+			three.set(TalonSRXControlMode.PercentOutput, 1.0f);
+		} else {
+			three.set(TalonSRXControlMode.PercentOutput, 0.0);
+		}
+
+		if (operator.getRawButton(3)) {
+			intake.set(ControlMode.PercentOutput, 1.5);
+		} else {
+			intake.set(ControlMode.PercentOutput, 0.0);
+		}
+
+		// driver
+
+		// limelight climbing
+		if (driver.getRawButton(2)) {
+
+			// reset everything for a new climb
+			if (driver.getRawButtonPressed(2)) {
+				climbStep = 0;
+				climbMoveTimer = new Timer();
+				climbMoveTimer.reset();
 			}
-			
+
+			armsUp = true;
+
+			if (climbStep == 0) {
+				// position and rotate robot to on target
+				// move up climber arms
+
+				if (limelight.GetAprilID() == 13) {
+					limelight.PositionCursor(swerveDrive, 90);
+				} else if (limelight.GetAprilID() == 12) {
+					limelight.PositionCursor(swerveDrive, -140);
+				} else if (limelight.GetAprilID() == 11) {
+					limelight.PositionCursor(swerveDrive, -29.5);
+				}
+
+				if (limelight.OnTarget()) {
+					climbStep = 1;
+					climbMoveTimer.start();
+				}
+			} else if (climbStep == 1) {
+				// run wench and move forward
+				if (climbMoveTimer.get() < 0.8) {
+					swerveDrive.drive(0.1, 0, 0, false, true);
+				} else {
+					swerveDrive.drive(-0.05, 0.0, 0, false, true);
+					wench.set(1.0f);
+				}
+
+			}
 
 		} else {
 
 			double pow = 2;
-			double axisZero = Math.pow(operator.getRawAxis(0), pow)
-					* (operator.getRawAxis(0) / Math.abs(operator.getRawAxis(0)));
-			double axisOne = Math.pow(operator.getRawAxis(1), pow)
-					* (operator.getRawAxis(1) / Math.abs(operator.getRawAxis(1)));
+			double axisZero = Math.pow(driver.getRawAxis(0), pow)
+					* (driver.getRawAxis(0) / Math.abs(driver.getRawAxis(0)));
+			double axisOne = Math.pow(driver.getRawAxis(1), pow)
+					* (driver.getRawAxis(1) / Math.abs(driver.getRawAxis(1)));
 
-			if (operator.getRawButton(6)) {
+			if (driver.getRawButton(6)) {
 				axisZero = axisZero * 0.25;
 				axisOne = axisOne * 0.25;
 			}
@@ -215,14 +296,17 @@ public class Robot extends TimedRobot {
 			swerveDrive.drive(
 					MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
 					-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
-					-MathUtil.applyDeadband(operator.getRawAxis(4), OIConstants.kDriveDeadband),
+					-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
 					true, true);
 		}
 
 		// zero
-		if (operator.getRawButton(1)) {
+		if (driver.getRawButton(1)) {
 			swerveDrive.zeroHeading();
 		}
+
+		// set climber arms
+		ClimberArmsUp(armsUp);
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
@@ -248,18 +332,19 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testInit() {
-		operator = new Joystick(1);
-		flightStickLeft = new Joystick(3);
-		flightStickRight = new Joystick(2);
+		operator = new Joystick(2);
+		driver = new Joystick(1);
+		// flightStickLeft = new Joystick(3);
+		// flightStickRight = new Joystick(2);
 
 		swerveDrive.zeroHeading();
 	}
 
 	public void testPeriodic() {
 		swerveDrive.drive(
-				-MathUtil.applyDeadband(flightStickLeft.getRawAxis(0), OIConstants.kDriveDeadband),
-				MathUtil.applyDeadband(flightStickLeft.getRawAxis(1), OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(flightStickRight.getRawAxis(0), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband),
+				MathUtil.applyDeadband(driver.getRawAxis(1), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband),
 				true, false);
 	}
 

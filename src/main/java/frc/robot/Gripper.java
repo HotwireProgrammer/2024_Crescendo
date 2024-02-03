@@ -78,7 +78,7 @@ public class Gripper {
             motorGripper.set(closingForce);
         }
 
-        if (robot.operator.getRawButton(2) || robot.flightStickLeft.getRawButton(1)) {
+        if (robot.operator.getRawButton(2) || robot.driver.getRawButton(1)) {
             timer.reset();
             close = false;
             motorGripper.set(-0.4);

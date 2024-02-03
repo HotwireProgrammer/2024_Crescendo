@@ -22,9 +22,9 @@ public class Limelight {
     public double iTranslate = 0.000;
     public double dTranslate = 0.1;
 
-    public double pDistance = 0.05;
+    public double pDistance = 0.01;
     public double iDistance = 0.000;
-    public double dDistance = 0.045;
+    public double dDistance = 0.0;
 
     String pKey = "limelight_P";
     String iKey = "limelight_I";
@@ -41,6 +41,7 @@ public class Limelight {
     public PIDController pid = new PIDController(p, i, d);
     public PIDController pid_translate = new PIDController(p, i, d);
     public PIDController pid_distance = new PIDController(p, i, d);
+    public PIDController pid_rotate = new PIDController(p, i, d);
 
     public Limelight() {
 
@@ -115,7 +116,8 @@ public class Limelight {
         if (tv.getDouble(0.0f) > 0) {
 
             double x = Math.abs(tx.getDouble(0.0));
-            return x < targetBuffer;
+            double y = Math.abs(ty.getDouble(0.0));
+            return x < targetBuffer && y < targetBuffer;
         }
 
         pid.reset();
@@ -193,6 +195,40 @@ public class Limelight {
         float pidOut = (float) pid_distance.calculate(x, 0);
 
         swerve.drive(0,pidOut, 0, true, true);
+    }
+
+    public void PositionCursor(DriveSubsystem swerve, double targetRotationDegrees) {
+
+        // get data from smart dashboard
+        pDistance = SmartDashboard.getNumber(pDistanceKey, pDistance);
+        iDistance= SmartDashboard.getNumber(iDistanceKey, iDistance);
+        dDistance = SmartDashboard.getNumber(dDistanceKey, dDistance);
+
+        // give data to pid class
+        pid_distance.setP(pDistance);
+        pid_distance.setI(iDistance);
+        pid_distance.setD(dDistance);
+
+        pid_translate.setP(pDistance);
+        pid_translate.setI(iDistance);
+        pid_translate.setD(dDistance);
+
+        pid_rotate.setP(0.015);
+        pid_rotate.setI(0);
+        pid_rotate.setD(0);
+
+        // get current error
+        double x = GetX();
+        double y = GetY();
+        double yaw = swerve.m_gyro.getYaw();
+
+
+        // calculate
+        float pidX = (float) pid_distance.calculate(x, 0);
+        float pidY = (float) pid_translate.calculate(y, 0);
+        float pidRot = (float) -pid_rotate.calculate(yaw, targetRotationDegrees);
+
+        swerve.drive(pidY, pidX, pidRot, false, true);
     }
 
     public void reset() {
