@@ -58,7 +58,7 @@ public class DriveSubsystem extends SubsystemBase {
   public double prot = 0.015;
   public double irot = 0.000;
   public double drot = 0.0;
-  
+
   public PIDController pid_rot = new PIDController(prot, irot, drot);
 
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
@@ -68,8 +68,6 @@ public class DriveSubsystem extends SubsystemBase {
   String protkey = "drive_rot_p";
   String irotkey = "drive_rot_i";
   String drotkey = "drive_rot_d";
- 
-
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -146,7 +144,7 @@ public class DriveSubsystem extends SubsystemBase {
     double x = m_gyro.getYaw();
     System.out.println(x);
 
-    //System.out.println("yaw - " + m_gyro.getYaw());
+    // System.out.println("yaw - " + m_gyro.getYaw());
 
     // calculate
     float pidOut = (float) pid_rot.calculate(x, targetRotationDegrees);

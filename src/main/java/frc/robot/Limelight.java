@@ -124,6 +124,22 @@ public class Limelight {
         return true;
     }
 
+    public boolean OnTargetHorizontal() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+        NetworkTableEntry tx = table.getEntry("tx");
+        NetworkTableEntry tv = table.getEntry("tv");
+
+        // Make sure we have valid targets first
+        if (tv.getDouble(0.0f) > 0) {
+
+            double x = Math.abs(tx.getDouble(0.0));
+            return x < targetBuffer;
+        }
+
+        pid.reset();
+        return true;
+    }
+
     public void PositionRotate(DriveSubsystem swerve) {
 
         if (OnTarget()) {
@@ -221,7 +237,6 @@ public class Limelight {
         double x = GetX();
         double y = GetY();
         double yaw = swerve.m_gyro.getYaw();
-
 
         // calculate
         float pidX = (float) pid_distance.calculate(x, 0);

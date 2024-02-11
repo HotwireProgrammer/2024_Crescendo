@@ -96,9 +96,9 @@ public class Robot extends TimedRobot {
 	public TalonSRX one = new TalonSRX(35);
 	public TalonSRX two = new TalonSRX(50);
 	public TalonSRX three = new TalonSRX(1);
-	public TalonSRX intake = new TalonSRX(11);
-	public CANSparkMax climberOne = new CANSparkMax(19, MotorType.kBrushless);
-	public CANSparkMax climberTwo = new CANSparkMax(14, MotorType.kBrushless);
+	//public TalonSRX intake = new TalonSRX(19);
+	//public CANSparkMax intake = new CANSparkMax(14, MotorType.kBrushless);
+	public CANSparkMax intake = new CANSparkMax(14, MotorType.kBrushless);
 	public CANSparkMax wench = new CANSparkMax(18, MotorType.kBrushless);
 	public DigitalInput limitSwitchOne = new DigitalInput(0);
 	public DigitalInput limitSwitchTwo = new DigitalInput(1);
@@ -144,11 +144,21 @@ public class Robot extends TimedRobot {
 		currentAutoStep = 0;
 
 		firstAuto = new LinkedList<AutoStep>();
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.0f));
 
+		firstAuto.add(new LimelightTrack(swerveDrive, null, limelight));
+
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
+
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0, 1));
+		
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
+		
+
 	}
+
 
 	public void autonomousPeriodic() {
 
@@ -188,15 +198,15 @@ public class Robot extends TimedRobot {
 
 	public void ClimberArmsUp(boolean up) {
 		if (up && !limitSwitchOne.get()) {
-			climberOne.set(0.05);
+			//climberOne.set(0.05);
 		} else {
-			climberOne.set(0.0);
+			//climberOne.set(0.0);
 		}
 
 		if (up && !limitSwitchTwo.get()) {
-			climberTwo.set(-0.05);
+		//	climberTwo.set(-0.05);
 		} else {
-			climberTwo.set(0.0);
+	//		climberTwo.set(0.0);
 		}
 	}
 
@@ -234,9 +244,9 @@ public class Robot extends TimedRobot {
 		}
 
 		if (operator.getRawButton(3)) {
-			intake.set(ControlMode.PercentOutput, 1.5);
+			intake.set(-1.0);
 		} else {
-			intake.set(ControlMode.PercentOutput, 0.0);
+			intake.set(0.0);
 		}
 
 		// driver
@@ -306,7 +316,7 @@ public class Robot extends TimedRobot {
 		}
 
 		// set climber arms
-		ClimberArmsUp(armsUp);
+		// ClimberArmsUp(armsUp);
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {

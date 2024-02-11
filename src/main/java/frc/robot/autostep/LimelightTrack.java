@@ -4,22 +4,21 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.DriveTrain;
 import frc.robot.Shooter;
+import frc.robot.swerve.DriveSubsystem;
 import frc.robot.Limelight;
 
 public class LimelightTrack extends AutoStep {
 
     public Timer limeTimer;
-    public DriveTrain driveTrain;
+    public DriveSubsystem driveTrain;
     public Shooter shooter;
     public Limelight limelight;
-    public double xAdjust;
 
-    public LimelightTrack(DriveTrain driveTrain, Shooter shooter, Limelight limelight, double xAdjust) {
+    public LimelightTrack(DriveSubsystem driveTrain, Shooter shooter, Limelight limelight) {
         super();
         this.driveTrain = driveTrain;
         this.shooter = shooter;
         this.limelight = limelight;
-        this.xAdjust = xAdjust;
     }
 
     public void Begin() {
@@ -29,17 +28,13 @@ public class LimelightTrack extends AutoStep {
     }
 
     public void Update() {
-        
-
-        if (limeTimer.get() > 1.5f) {
-            isDone = true;
-        }
+       limelight.PositionRotate(driveTrain);
 
         runShooter = true;
 
 
         //limelight.Position(driveTrain);
-        if (limelight.OnTarget() && driveTrain.getEncoderSpeed() == 0) {
+        if (limelight.OnTargetHorizontal()) {
             limelight.reset();
             isDone = true;
         }

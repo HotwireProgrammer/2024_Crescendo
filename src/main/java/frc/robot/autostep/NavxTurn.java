@@ -2,6 +2,7 @@ package frc.robot.autostep;
 
 import com.kauailabs.navx.frc.AHRS;
 import frc.robot.DriveTrain;
+import frc.robot.swerve.DriveSubsystem;
 
 public class NavxTurn extends AutoStep {
 
@@ -10,9 +11,9 @@ public class NavxTurn extends AutoStep {
     public float speed;
     public float goodEnoughDeg;
 
-    public DriveTrain driveTrain;
+    public DriveSubsystem driveTrain;
 
-    public NavxTurn(DriveTrain driveTrain, AHRS navx, float turnDegree, float speed, float goodEnoughDeg) {
+    public NavxTurn(DriveSubsystem driveTrain, AHRS navx, float turnDegree, float speed, float goodEnoughDeg) {
         super();
         this.navx = navx;
         this.speed = speed;
@@ -21,30 +22,18 @@ public class NavxTurn extends AutoStep {
         this.goodEnoughDeg = goodEnoughDeg;
     }
 
-    public void Begin() {
-        float diff = (turnDegree - navx.getYaw());
-        int direction = (int) ((Math.abs(diff)) / diff);
-
-        driveTrain.SetLeftSpeed(speed * direction);
-        driveTrain.SetRightSpeed(-speed * direction);
-    }
+    public void Begin() { }
 
     public void Update() {
         System.out.println(navx.getYaw());
         float degreeDifference = Math.abs(navx.getYaw() - turnDegree);
+
+        driveTrain.GoToRotation(turnDegree);
+
         //float goodEnoughDeg = 5.0f;
         if (degreeDifference < goodEnoughDeg) {
-            driveTrain.SetLeftSpeed(0);
-            driveTrain.SetRightSpeed(0);
-            if (driveTrain.getEncoderSpeed() == 0) {
-                isDone = true;
-            }
-        }else{
-            float diff = (turnDegree - navx.getYaw());
-            int direction = (int) ((Math.abs(diff)) / diff);
-    
-            driveTrain.SetLeftSpeed(speed * direction);
-            driveTrain.SetRightSpeed(-speed * direction);
+            driveTrain.drive(0, 0, 0, true, true);
+            isDone = true;
         }
     }
 }
