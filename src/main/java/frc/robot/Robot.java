@@ -145,18 +145,13 @@ public class Robot extends TimedRobot {
 
 		firstAuto = new LinkedList<AutoStep>();
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.0f));
-
 		firstAuto.add(new LimelightTrack(swerveDrive, null, limelight));
-
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
-
 		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0, 1));
 		
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
-		
-
 	}
 
 
