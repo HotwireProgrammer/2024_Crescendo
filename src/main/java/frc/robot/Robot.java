@@ -73,8 +73,7 @@ public class Robot extends TimedRobot {
 	public Joystick operator;
 	public boolean arcadeDrive = false;
 	public Joystick driver;
-	// public Joystick flightStickLeft;
-	// public Joystick flightStickRight;
+
 	// public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushless);
 
 	public Limelight limelight = new Limelight();
@@ -93,15 +92,20 @@ public class Robot extends TimedRobot {
 
 	public String autoSelectKey = "autoMode";
 
-	public TalonSRX one = new TalonSRX(35);
-	public TalonSRX two = new TalonSRX(50);
-	public TalonSRX three = new TalonSRX(1);
-	//public TalonSRX intake = new TalonSRX(19);
-	//public CANSparkMax intake = new CANSparkMax(14, MotorType.kBrushless);
-	public CANSparkMax intake = new CANSparkMax(14, MotorType.kBrushless);
-	public CANSparkMax wench = new CANSparkMax(18, MotorType.kBrushless);
-	public DigitalInput limitSwitchOne = new DigitalInput(0);
-	public DigitalInput limitSwitchTwo = new DigitalInput(1);
+	public CANSparkMax intake = new CANSparkMax(2, MotorType.kBrushless);
+	public CANSparkMax claw = new CANSparkMax(1, MotorType.kBrushless);
+	public CANSparkMax clawSpin = new CANSparkMax(3, MotorType.kBrushless);
+	public CANSparkMax wench = new CANSparkMax(6, MotorType.kBrushless);
+	public CANSparkMax shooterFeeder = new CANSparkMax(7, MotorType.kBrushless);
+	public CANSparkMax shooterBottom = new CANSparkMax(4, MotorType.kBrushless);
+	public CANSparkMax shooterTop = new CANSparkMax(5, MotorType.kBrushless);
+	public CANSparkMax elevator = new CANSparkMax(8, MotorType.kBrushless);
+
+	public CANSparkMax climberOne = new CANSparkMax(9, MotorType.kBrushless);
+	public CANSparkMax climberTwo = new CANSparkMax(62, MotorType.kBrushless);
+
+	public DigitalInput limitSwitchOne = new DigitalInput(1);
+	public DigitalInput limitSwitchTwo = new DigitalInput(0);
 
 	public boolean holding = false;
 
@@ -113,11 +117,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void robotInit() {
-		SmartDashboard.putNumber("Ballcount", 0);
-		SmartDashboard.putBoolean("Balance", false);
-		SmartDashboard.putBoolean("DriveStraight", false);
-		SmartDashboard.putBoolean("Test", false);
-		CameraServer.startAutomaticCapture();
+
 		limelight.SetLight(false);
 		limelight.Init();
 		SmartDashboard.putNumber(autoSelectKey, 0);
@@ -130,15 +130,11 @@ public class Robot extends TimedRobot {
 		// Controllers
 		operator = new Joystick(2);
 		driver = new Joystick(1);
-		// flightStickLeft = new Joystick(3);
-		// flightStickRight = new Joystick(2);
 	}
 
 	public void disabledPeriodic() {
-		SmartDashboard.putBoolean("RobotEnabled", false);
-	}
 
-	// fix autonomous spinning
+	}
 
 	public void autonomousInit() {
 		currentAutoStep = 0;
@@ -148,12 +144,11 @@ public class Robot extends TimedRobot {
 		firstAuto.add(new LimelightTrack(swerveDrive, null, limelight));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
 		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0, 1));
-		
+
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
 	}
-
 
 	public void autonomousPeriodic() {
 
@@ -186,22 +181,20 @@ public class Robot extends TimedRobot {
 		// Controllers
 		driver = new Joystick(1);
 		operator = new Joystick(2);
-		// flightStickLeft = new Joystick(3);
-		// flightStickRight = new Joystick(2);
 
 	}
 
 	public void ClimberArmsUp(boolean up) {
 		if (up && !limitSwitchOne.get()) {
-			//climberOne.set(0.05);
+			climberOne.set(0.1);
 		} else {
-			//climberOne.set(0.0);
+			climberOne.set(0.0);
 		}
 
 		if (up && !limitSwitchTwo.get()) {
-		//	climberTwo.set(-0.05);
+			climberTwo.set(-0.1);
 		} else {
-	//		climberTwo.set(0.0);
+			climberTwo.set(0.0);
 		}
 	}
 
@@ -209,6 +202,7 @@ public class Robot extends TimedRobot {
 
 		boolean armsUp = false;
 		if (operator.getRawButton(4)) {
+			System.out.println("running arms");
 			armsUp = true;
 		}
 
@@ -220,29 +214,30 @@ public class Robot extends TimedRobot {
 			wench.set(0);
 		}
 
-		if (operator.getRawButton(6)) {
-			// top
-			one.set(TalonSRXControlMode.PercentOutput, -0.50);
-			// bottom
-			two.set(TalonSRXControlMode.PercentOutput, -0.45);
-
-			System.out.println("one " + one.getSelectedSensorVelocity() + " two " + two.getSelectedSensorVelocity());
+		// shooter
+		if (operator.getRawButton(1)) {
+			shooterFeeder.set(-1.0f);
+			shooterBottom.set(1.0f);
+			shooterTop.set(1.0f);
 		} else {
-			one.set(TalonSRXControlMode.PercentOutput, 0);
-			two.set(TalonSRXControlMode.PercentOutput, 0);
+			shooterFeeder.set(0);
+			shooterBottom.set(0);
+			shooterTop.set(0);
 		}
 
-		if (operator.getRawButton(5)) {
-			three.set(TalonSRXControlMode.PercentOutput, 1.0f);
-		} else {
-			three.set(TalonSRXControlMode.PercentOutput, 0.0);
-		}
-
+		// intake
 		if (operator.getRawButton(3)) {
-			intake.set(-1.0);
+			intake.set(-0.60);
+			claw.set(0.30);
 		} else {
 			intake.set(0.0);
+			claw.set(0.0);
 		}
+
+		clawSpin.set(operator.getRawAxis(5));
+
+		//elevator
+		elevator.set(-operator.getRawAxis(1) * 0.25);
 
 		// driver
 
@@ -311,7 +306,7 @@ public class Robot extends TimedRobot {
 		}
 
 		// set climber arms
-		// ClimberArmsUp(armsUp);
+		ClimberArmsUp(armsUp);
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
@@ -339,8 +334,6 @@ public class Robot extends TimedRobot {
 	public void testInit() {
 		operator = new Joystick(2);
 		driver = new Joystick(1);
-		// flightStickLeft = new Joystick(3);
-		// flightStickRight = new Joystick(2);
 
 		swerveDrive.zeroHeading();
 	}
