@@ -41,6 +41,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.BooleanEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -106,11 +107,14 @@ public class Robot extends TimedRobot {
 
 	public DigitalInput limitSwitchOne = new DigitalInput(1);
 	public DigitalInput limitSwitchTwo = new DigitalInput(0);
+	public DigitalInput clawStop = new DigitalInput(2);
 
 	public boolean holding = false;
 
 	public int climbStep = 0;
-	public Timer climbMoveTimer;
+	public Timer climberStepTimer;
+	public boolean firstClick = false;
+	public Boolean secondClick = false;
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -185,14 +189,33 @@ public class Robot extends TimedRobot {
 	}
 
 	public void ClimberArmsUp(boolean up) {
-		if (up && !limitSwitchOne.get()) {
-			climberOne.set(0.1);
+
+		if (up) {
+
+			if (firstClick) {
+				climberOne.set(0.025);
+			} else {
+				climberOne.set(0.15);
+			}
+
+			if (limitSwitchOne.get()) {
+				firstClick = true;
+			}
 		} else {
 			climberOne.set(0.0);
 		}
 
-		if (up && !limitSwitchTwo.get()) {
-			climberTwo.set(-0.1);
+		if (up) {
+
+			if (secondClick) {
+				climberTwo.set(-0.025);
+			} else {
+				climberTwo.set(-0.15);
+			}
+
+			if (limitSwitchTwo.get()) {
+				secondClick = true;
+			}
 		} else {
 			climberTwo.set(0.0);
 		}
@@ -202,42 +225,25 @@ public class Robot extends TimedRobot {
 
 		boolean armsUp = false;
 		if (operator.getRawButton(4)) {
-			System.out.println("running arms");
 			armsUp = true;
 		}
-
-		if (operator.getRawAxis(3) > 0.01) {
-			wench.set(operator.getRawAxis(3));
-		} else if (operator.getRawAxis(2) > 0.01) {
-			wench.set(-operator.getRawAxis(2));
-		} else {
-			wench.set(0);
+		if (operator.getRawButtonPressed(4)) {
+			firstClick = false;
+			secondClick = false;
 		}
 
 		// shooter
-		if (operator.getRawButton(1)) {
+		boolean clawRun = false;
+		if (operator.getRawButton(6)) {
 			shooterFeeder.set(-1.0f);
 			shooterBottom.set(1.0f);
 			shooterTop.set(1.0f);
+			//clawRun = true;
 		} else {
 			shooterFeeder.set(0);
 			shooterBottom.set(0);
 			shooterTop.set(0);
 		}
-
-		// intake
-		if (operator.getRawButton(3)) {
-			intake.set(-0.60);
-			claw.set(0.30);
-		} else {
-			intake.set(0.0);
-			claw.set(0.0);
-		}
-
-		clawSpin.set(operator.getRawAxis(5));
-
-		//elevator
-		elevator.set(-operator.getRawAxis(1) * 0.25);
 
 		// driver
 
@@ -247,13 +253,18 @@ public class Robot extends TimedRobot {
 			// reset everything for a new climb
 			if (driver.getRawButtonPressed(2)) {
 				climbStep = 0;
-				climbMoveTimer = new Timer();
-				climbMoveTimer.reset();
+				climberStepTimer = new Timer();
+				climberStepTimer.reset();
 			}
 
-			armsUp = true;
+			/*
+			 * Climb steps
+			 * 8. shoot
+			 */
 
 			if (climbStep == 0) {
+				// 1. position robot
+
 				// position and rotate robot to on target
 				// move up climber arms
 
@@ -267,21 +278,108 @@ public class Robot extends TimedRobot {
 
 				if (limelight.OnTarget()) {
 					climbStep = 1;
-					climbMoveTimer.start();
-				}
-			} else if (climbStep == 1) {
-				// run wench and move forward
-				if (climbMoveTimer.get() < 0.8) {
-					swerveDrive.drive(0.1, 0, 0, false, true);
-				} else {
-					swerveDrive.drive(-0.05, 0.0, 0, false, true);
-					wench.set(1.0f);
+					climberStepTimer.start();
 				}
 
+			} else if (climbStep == 1) {
+				// 2. drive under chain
+
+				swerveDrive.drive(0.1, 0, 0, false, true);
+
+				if (climberStepTimer.get() > 0.8) {
+					swerveDrive.drive(0, 0, 0, false, true);
+
+					climberStepTimer.reset();
+					climbStep = climbStep + 1;
+				}
+
+			} else if (climbStep == 2) {
+				// 3. Rotate claw
+				clawSpin.set(0.25);
+
+				if (climberStepTimer.get() > 0.5) {
+					climberStepTimer.reset();
+					climbStep = climbStep + 1;
+				}
+			} else if (climbStep == 3) {
+				// 4. back out
+				swerveDrive.drive(-0.1, 0, 0, false, true);
+
+				if (climberStepTimer.get() > 0.8) {
+					swerveDrive.drive(0, 0, 0, false, true);
+
+					climberStepTimer.reset();
+					climbStep = climbStep + 1;
+				}
+			} else if (climbStep == 4) {
+				// 5. hook up
+
+				armsUp = true;
+
+				if (climberStepTimer.get() > 0.8) {
+					swerveDrive.drive(0, 0, 0, false, true);
+
+					climberStepTimer.reset();
+					climbStep = climbStep + 1;
+				}
+
+			} else if (climbStep == 5) {
+				// 6. drive forward for hooks to connect
+
+				swerveDrive.drive(0.1, 0, 0, false, true);
+
+				if (climberStepTimer.get() > 0.8) {
+					swerveDrive.drive(0, 0, 0, false, true);
+
+					climberStepTimer.reset();
+					climbStep = climbStep + 1;
+				}
+			} else if (climbStep == 5) {
+				// 7. wench up and elevator up
+
+				wench.set(0.5);
+
+				if (climberStepTimer.get() > 0.8) {
+					swerveDrive.drive(0, 0, 0, false, true);
+
+					climberStepTimer.reset();
+					climbStep = climbStep + 1;
+				}
 			}
 
+			// swerveDrive.drive(-0.05, 0.0, 0, false, true);
+			// wench.set(1.0f);
 		} else {
 
+			// human controls
+			if (operator.getRawAxis(3) > 0.01) {
+				wench.set(operator.getRawAxis(3));
+			} else if (operator.getRawAxis(2) > 0.01) {
+				wench.set(-operator.getRawAxis(2));
+			} else {
+				wench.set(0);
+			}
+
+			// intake
+			if (operator.getRawButton(1)) {
+				intake.set(-0.70);
+				clawRun = true;
+			} else {
+				intake.set(0.0);
+			}
+
+			if (clawRun) {
+				claw.set(0.5);
+			} else {
+				claw.set(0.0);
+			}
+
+			clawSpin.set(operator.getRawAxis(5));
+
+			// elevator
+			elevator.set(-operator.getRawAxis(1) * 0.25);
+
+			// drive controls
 			double pow = 2;
 			double axisZero = Math.pow(driver.getRawAxis(0), pow)
 					* (driver.getRawAxis(0) / Math.abs(driver.getRawAxis(0)));
