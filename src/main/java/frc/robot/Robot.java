@@ -64,6 +64,7 @@ import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
 
 import com.revrobotics.REVLibError;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -102,12 +103,16 @@ public class Robot extends TimedRobot {
 	public CANSparkMax shooterTop = new CANSparkMax(5, MotorType.kBrushless);
 	public CANSparkMax elevator = new CANSparkMax(8, MotorType.kBrushless);
 
+	public RelativeEncoder clawSpinEncoder = clawSpin.getEncoder();
+	public float clawSpinOffset = 0;
+
 	public CANSparkMax climberOne = new CANSparkMax(9, MotorType.kBrushless);
 	public CANSparkMax climberTwo = new CANSparkMax(62, MotorType.kBrushless);
 
 	public DigitalInput limitSwitchOne = new DigitalInput(1);
 	public DigitalInput limitSwitchTwo = new DigitalInput(0);
-	public DigitalInput clawStop = new DigitalInput(2);
+	public DigitalInput clawStop = new DigitalInput(6);
+	public Timer clawStopTimer = new Timer();
 
 	public boolean holding = false;
 
@@ -186,6 +191,8 @@ public class Robot extends TimedRobot {
 		driver = new Joystick(1);
 		operator = new Joystick(2);
 
+		clawSpinEncoder.setPositionConversionFactor(1000);
+		clawSpinOffset = (float) clawSpinEncoder.getPosition();
 	}
 
 	public void ClimberArmsUp(boolean up) {
@@ -236,9 +243,13 @@ public class Robot extends TimedRobot {
 		boolean clawRun = false;
 		if (operator.getRawButton(6)) {
 			shooterFeeder.set(-1.0f);
-			shooterBottom.set(1.0f);
-			shooterTop.set(1.0f);
-			//clawRun = true;
+			shooterBottom.set(.50f);
+			shooterTop.set(.80f);
+
+			if (operator.getRawButton(1)) {
+				clawRun = true;
+			}
+
 		} else {
 			shooterFeeder.set(0);
 			shooterBottom.set(0);
@@ -361,23 +372,55 @@ public class Robot extends TimedRobot {
 			}
 
 			// intake
-			if (operator.getRawButton(1)) {
+			// System.out.println(clawStop.get());
+
+			if (clawStop.get()) {
+				clawStopTimer.reset();
+				clawStopTimer.start();
+			}
+			if (operator.getRawButton(1) && clawStop.get() && clawStopTimer.get() < 0.5) {
 				intake.set(-0.70);
 				clawRun = true;
 			} else {
 				intake.set(0.0);
 			}
-
+ 
 			if (clawRun) {
 				claw.set(0.5);
 			} else {
 				claw.set(0.0);
 			}
 
-			clawSpin.set(operator.getRawAxis(5));
+			// claw
+			{
+				float idlePowerArm = 1.8f;
+				float pi = 3.14159f;
+				float armDegStart = 30f;
+				float zeroOffsetDeg = -90.0f;
+
+				float countPerHalfRotation = 2476;
+				float countPerRotation = countPerHalfRotation * 2.0f;
+				float degPerCount = 360.0f / countPerRotation;
+
+				// arbitrary choice
+				clawSpinEncoder.setPositionConversionFactor(1000);
+				float armDeg = Math.abs(
+						((float) Math.abs(clawSpinEncoder.getPosition() - clawSpinOffset) * degPerCount) + armDegStart
+								- zeroOffsetDeg);
+				float armRad = armDeg * (pi / 180.0f);
+				double armPower = Math.cos(armRad);
+				double gravityOffset = armPower * idlePowerArm;
+
+				if (operator.getRawButton(5)) {
+					clawSpin.setVoltage(gravityOffset + (operator.getRawAxis(5) * 1.5));
+				} else {
+					clawSpin.setVoltage(0);
+				}
+
+			}
 
 			// elevator
-			elevator.set(-operator.getRawAxis(1) * 0.25);
+			elevator.set(-operator.getRawAxis(1) * 0.20);
 
 			// drive controls
 			double pow = 2;
