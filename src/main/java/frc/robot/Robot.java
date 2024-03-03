@@ -98,9 +98,10 @@ public class Robot extends TimedRobot {
 	public CANSparkMax claw = new CANSparkMax(1, MotorType.kBrushless);
 	public CANSparkMax clawSpin = new CANSparkMax(3, MotorType.kBrushless);
 	public CANSparkMax wench = new CANSparkMax(6, MotorType.kBrushless);
-	public CANSparkMax shooterFeeder = new CANSparkMax(7, MotorType.kBrushless);
-	public CANSparkMax shooterBottom = new CANSparkMax(4, MotorType.kBrushless);
-	public CANSparkMax shooterTop = new CANSparkMax(5, MotorType.kBrushless);
+	// public CANSparkMax shooterFeeder = new CANSparkMax(7, MotorType.kBrushless);
+	// public CANSparkMax shooterBottom = new CANSparkMax(4, MotorType.kBrushless);
+	// public CANSparkMax shooterTop = new CANSparkMax(5, MotorType.kBrushless);
+	public Shooter shooter = new Shooter(limelight);
 	public CANSparkMax elevator = new CANSparkMax(8, MotorType.kBrushless);
 
 	public RelativeEncoder clawSpinEncoder = clawSpin.getEncoder();
@@ -242,18 +243,19 @@ public class Robot extends TimedRobot {
 		// shooter
 		boolean clawRun = false;
 		if (operator.getRawButton(6)) {
-			shooterFeeder.set(-1.0f);
-			shooterBottom.set(.50f);
-			shooterTop.set(.80f);
+
+			if (operator.getRawButtonPressed(6)) {
+				shooter.Reset();
+			}
+
+			shooter.Update(3000, 3500);
 
 			if (operator.getRawButton(1)) {
 				clawRun = true;
 			}
 
 		} else {
-			shooterFeeder.set(0);
-			shooterBottom.set(0);
-			shooterTop.set(0);
+			shooter.PowerManual(0.0f);
 		}
 
 		// driver
@@ -384,7 +386,7 @@ public class Robot extends TimedRobot {
 			} else {
 				intake.set(0.0);
 			}
- 
+
 			if (clawRun) {
 				claw.set(0.5);
 			} else {

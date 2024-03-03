@@ -1,70 +1,69 @@
 package frc.robot;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class Shooter {
-    public float sppeed = 0;
-
-    public TalonSRX shooterOne = new TalonSRX(6);
-    public TalonSRX shooterTwo = new TalonSRX(50);
+    public CANSparkMax shooterFeeder = new CANSparkMax(7, MotorType.kBrushless);
+    public CANSparkMax shooterBottom = new CANSparkMax(4, MotorType.kBrushless);
+    public CANSparkMax shooterTop = new CANSparkMax(5, MotorType.kBrushless);
 
     public Limelight limelight;
 
     public double shooterP = 0.0002;
-    public double shooterI = 0.0004;
+    public double shooterI = 0.001;
     public double shooterD = 0.0;
 
-    public HotPID shooterPid;
+    public HotPID topPid = new HotPID("shooter top", shooterP, shooterI, shooterD);
+    public HotPID bottomPid = new HotPID("shooter bottom", shooterP, shooterI, shooterD);
 
-    public boolean didHitSpeed = true;
+    public double rpmCurrent = 0;
 
-    public double rpmTarget = 0;
+    private double rpmTarget = 0;
 
-    public float rpmCurrent = 0;
-
-    public Shooter(Limelight limelight, PreShooterpid preshooterpid) {
+    public Shooter(Limelight limelight) {
 
         this.limelight = limelight;
     }
 
     public void Init() {
-        shooterPid = new HotPID("shooter", shooterP, shooterI, shooterD);
+        topPid = new HotPID("shooter top", shooterP, shooterI, shooterD);
+        bottomPid = new HotPID("shooter bottom", shooterP, shooterI, shooterD);
+
     }
 
     public void Reset() {
-        sppeed = (float) SmartDashboard.getNumber("Shooter Rot Target", sppeed);
-
-        shooterPid.reset();
+        topPid.reset();
+        bottomPid.reset();
     }
 
-    public void Update() {
+    public void Update(float rpmTop, float rpmBottom) {
 
-        rpmCurrent = TalonVelocityToRPM((float) shooterTwo.getSelectedSensorVelocity());
-        rpmTarget = 1000;
+        // shooterTop.get
+        SmartDashboard.putNumber("shooter rpm Top", shooterTop.getEncoder().getVelocity());
+        SmartDashboard.putNumber("shooter rpm Bottom", shooterBottom.getEncoder().getVelocity());
 
-        shooterPid.setpoint = rpmTarget;
-        double motorSpeed = shooterPid.Calculate(rpmCurrent);
+        topPid.setpoint = rpmTop;
+        double motorSpeedTop = topPid.Calculate(shooterTop.getEncoder().getVelocity());
 
-        if (motorSpeed < 0) {
-            motorSpeed = 0;
+        bottomPid.setpoint = rpmBottom;
+        double motorSpeedBottom = bottomPid.Calculate(shooterBottom.getEncoder().getVelocity());
+
+        if (motorSpeedTop < 0) {
+            motorSpeedTop = 0;
+        }
+        if (motorSpeedBottom < 0) {
+            motorSpeedBottom = 0;
         }
 
-        float max = 0.95f;
-        if (motorSpeed >= max) {
-            motorSpeed = max;
-        }
-
-        if (rpmTarget == 0.0) {
+        if (rpmTop == 0.0) {
             PowerManual(0);
         } else {
-            PowerManual((float) motorSpeed);
+            shooterTop.set(motorSpeedTop);
+            shooterBottom.set(motorSpeedBottom);
+            shooterFeeder.set(-1);
         }
-
-        SmartDashboard.putNumber("Shooter_Speed", motorSpeed);
-        SmartDashboard.putNumber("Shooter_RPM", rpmCurrent);
     }
 
     public boolean UpToSpeed(float RPMBuffer) {
@@ -73,13 +72,9 @@ public class Shooter {
     }
 
     public void PowerManual(float power) {
-        shooterOne.set(ControlMode.PercentOutput, power);
-        shooterTwo.set(ControlMode.PercentOutput, power * -1);
-    }
-
-    public float TalonVelocityToRPM(float ticks) {
-        float rpm = ((ticks / 2048) * 600);
-        return Math.abs(rpm);
+        shooterTop.set(power);
+        shooterBottom.set(power * -1);
+        shooterFeeder.set(0);
     }
 
     public float Lerp(float v0, float v1, float t) {

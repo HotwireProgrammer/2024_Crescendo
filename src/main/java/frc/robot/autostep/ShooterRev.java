@@ -16,7 +16,7 @@ public class ShooterRev extends AutoStep {
     }
 
     public void Begin() {
-        shooter.rpmTarget = rpmTarget;
+        //shooter.rpmTarget = rpmTarget;
     }
 
     public void Update() {

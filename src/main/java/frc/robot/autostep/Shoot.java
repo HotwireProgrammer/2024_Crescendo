@@ -32,7 +32,7 @@ public class Shoot extends AutoStep {
 
     public void Begin() {
         tickStart = (int) indexer.indexerMotor.getSelectedSensorPosition();
-        shooter.rpmTarget = rpmTarget;
+        //shooter.rpmTarget = rpmTarget;
         balltimer = new Timer();
         balltimer.stop();
         balltimer.reset();
@@ -61,7 +61,7 @@ public class Shoot extends AutoStep {
                 //System.out.println("ran back");
                 indexer.RunManualForward(-1.0f, 1.0f);
             } else {
-                shooter.Update();
+                shooter.Update((float)rpmTarget, 1000);
                 indexer.RunManualForward(0.6f, 0.03f);
             }
         }
