@@ -19,8 +19,6 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 
   public class Climber {

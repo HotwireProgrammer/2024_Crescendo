@@ -65,8 +65,9 @@ import edu.wpi.first.wpilibj.util.Color;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class Robot extends TimedRobot {
@@ -94,21 +95,18 @@ public class Robot extends TimedRobot {
 
 	public String autoSelectKey = "autoMode";
 
-	public CANSparkMax intake = new CANSparkMax(2, MotorType.kBrushless);
-	public CANSparkMax claw = new CANSparkMax(1, MotorType.kBrushless);
-	public CANSparkMax clawSpin = new CANSparkMax(3, MotorType.kBrushless);
-	public CANSparkMax wench = new CANSparkMax(6, MotorType.kBrushless);
-	// public CANSparkMax shooterFeeder = new CANSparkMax(7, MotorType.kBrushless);
-	// public CANSparkMax shooterBottom = new CANSparkMax(4, MotorType.kBrushless);
-	// public CANSparkMax shooterTop = new CANSparkMax(5, MotorType.kBrushless);
+	public CANSparkMax intake = new CANSparkMax(2, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax claw = new CANSparkMax(1, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax clawSpin = new CANSparkMax(3, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax wench = new CANSparkMax(6, CANSparkLowLevel.MotorType.kBrushless);
 	public Shooter shooter = new Shooter(limelight);
-	public CANSparkMax elevator = new CANSparkMax(8, MotorType.kBrushless);
+	public CANSparkMax elevator = new CANSparkMax(8, CANSparkLowLevel.MotorType.kBrushless);
 
 	public RelativeEncoder clawSpinEncoder = clawSpin.getEncoder();
 	public float clawSpinOffset = 0;
 
-	public CANSparkMax climberOne = new CANSparkMax(9, MotorType.kBrushless);
-	public CANSparkMax climberTwo = new CANSparkMax(62, MotorType.kBrushless);
+	public CANSparkMax climberOne = new CANSparkMax(9, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax climberTwo = new CANSparkMax(62, CANSparkLowLevel.MotorType.kBrushless);
 
 	public DigitalInput limitSwitchOne = new DigitalInput(1);
 	public DigitalInput limitSwitchTwo = new DigitalInput(0);
