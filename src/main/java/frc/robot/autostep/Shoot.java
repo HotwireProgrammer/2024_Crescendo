@@ -6,64 +6,35 @@ import frc.robot.Shooter;
 import edu.wpi.first.wpilibj.Timer;
 
 import frc.robot.Indexer;
+import frc.robot.Robot;
 
 public class Shoot extends AutoStep {
 
     public Shooter shooter;
-    public double rpmTarget;
-    public Indexer indexer;
-    private int ballsShot = 0;
-    public boolean beamBreakClear = true;
-    public Timer balltimer;
-    public int ballsShotTarget = 5;
-    private int tickStart = 0;
-    private boolean toggle = false;
-    public int ballcount;
+    public Timer shootTimer;
+    public Robot robot;
+    public boolean run;
 
-    public boolean doingEnd = false;
-
-    public Shoot(Shooter shooter, Indexer indexer) {
+    public Shoot(Shooter shooter, Indexer indexer, Robot robot, boolean run) {
         super();
+        shootTimer = new Timer();
+        this.robot = robot;
+        this.run = run;
         this.shooter = shooter;
-        this.indexer = indexer;
-
-        autoIndex = false;
     }
 
     public void Begin() {
-        tickStart = (int) indexer.indexerMotor.getSelectedSensorPosition();
-        //shooter.rpmTarget = rpmTarget;
-        balltimer = new Timer();
-        balltimer.stop();
-        balltimer.reset();
-        balltimer.start();
+
     }
 
     public void Update() {
-        System.out.println(ballcount + " ballcount");
-        // Timer for override
+        robot.runShooter = run;
+        robot.swerveDrive.drive(0, 0, 0, true, true);
 
-        if (balltimer.get() > 4) {
+        if (shooter.UpToSpeed(200)) {
+            shootTimer.reset();
+            shootTimer.start();
             isDone = true;
-        }
-
-        if (!indexer.secondBeam.get()) {
-            toggle = true;
-        }
-        if (indexer.secondBeam.get() && toggle) {
-            toggle = false;
-            ballcount = ballcount + 1;
-        }
-        if (ballcount == 2) {
-            isDone = true;
-        } else {
-            if (balltimer.get() > 2 && balltimer.get() < 2.1) {
-                //System.out.println("ran back");
-                indexer.RunManualForward(-1.0f, 1.0f);
-            } else {
-                shooter.Update((float)rpmTarget, 1000);
-                indexer.RunManualForward(0.6f, 0.03f);
-            }
         }
     }
 }

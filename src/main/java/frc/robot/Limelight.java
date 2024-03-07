@@ -55,7 +55,7 @@ public class Limelight {
         SmartDashboard.putNumber(pTranslateKey, pTranslate);
         SmartDashboard.putNumber(iTranslateKey, iTranslate);
         SmartDashboard.putNumber(dTranslateKey, dTranslate);
-    
+
         SmartDashboard.putNumber(pDistanceKey, pDistance);
         SmartDashboard.putNumber(iDistanceKey, iDistance);
         SmartDashboard.putNumber(dDistanceKey, dDistance);
@@ -75,10 +75,10 @@ public class Limelight {
         NetworkTableEntry tv = table.getEntry("tv");
 
         if (tv.getDouble(0.0f) > 0) {
-            return (int)tid.getDouble(0.0);
+            return (int) tid.getDouble(0.0);
         }
 
-        return 0;        
+        return 0;
     }
 
     public double GetArea() {
@@ -131,13 +131,14 @@ public class Limelight {
 
         // Make sure we have valid targets first
         if (tv.getDouble(0.0f) > 0) {
-
             double x = Math.abs(tx.getDouble(0.0));
             return x < targetBuffer;
+        } else {
+            return false;
         }
 
-        pid.reset();
-        return true;
+        //pid.reset();
+        //return true;
     }
 
     public void PositionRotate(DriveSubsystem swerve) {
@@ -189,14 +190,14 @@ public class Limelight {
         // calculate
         float pidOut = (float) pid_translate.calculate(x, 0);
 
-        swerve.drive(-pidOut,0, 0, true, true);
+        swerve.drive(-pidOut, 0, 0, true, true);
     }
 
     public void PositionDistance(DriveSubsystem swerve) {
 
         // get data from smart dashboard
         pDistance = SmartDashboard.getNumber(pDistanceKey, pDistance);
-        iDistance= SmartDashboard.getNumber(iDistanceKey, iDistance);
+        iDistance = SmartDashboard.getNumber(iDistanceKey, iDistance);
         dDistance = SmartDashboard.getNumber(dDistanceKey, dDistance);
 
         // give data to pid class
@@ -210,14 +211,14 @@ public class Limelight {
         // calculate
         float pidOut = (float) pid_distance.calculate(x, 0);
 
-        swerve.drive(0,pidOut, 0, true, true);
+        swerve.drive(0, pidOut, 0, true, true);
     }
 
     public void PositionCursor(DriveSubsystem swerve, double targetRotationDegrees) {
 
         // get data from smart dashboard
         pDistance = SmartDashboard.getNumber(pDistanceKey, pDistance);
-        iDistance= SmartDashboard.getNumber(iDistanceKey, iDistance);
+        iDistance = SmartDashboard.getNumber(iDistanceKey, iDistance);
         dDistance = SmartDashboard.getNumber(dDistanceKey, dDistance);
 
         // give data to pid class

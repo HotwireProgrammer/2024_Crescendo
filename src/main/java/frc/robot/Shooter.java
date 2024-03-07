@@ -40,6 +40,8 @@ public class Shooter {
 
     public void Update(float rpmTop, float rpmBottom) {
 
+        rpmTarget = rpmTop;
+
         // shooterTop.get
         SmartDashboard.putNumber("shooter rpm Top", shooterTop.getEncoder().getVelocity());
         SmartDashboard.putNumber("shooter rpm Bottom", shooterBottom.getEncoder().getVelocity());
@@ -75,16 +77,5 @@ public class Shooter {
         shooterTop.set(power);
         shooterBottom.set(power * -1);
         shooterFeeder.set(0);
-    }
-
-    public float Lerp(float v0, float v1, float t) {
-
-        if (t <= 0) {
-            t = 0;
-        } else if (t >= 1) {
-            t = 1;
-        }
-
-        return (v0 + t * (v1 - v0));
     }
 }

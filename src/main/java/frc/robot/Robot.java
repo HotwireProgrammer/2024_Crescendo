@@ -119,6 +119,7 @@ public class Robot extends TimedRobot {
 	public Timer climberStepTimer;
 	public boolean firstClick = false;
 	public Boolean secondClick = false;
+	public boolean runShooter = false;
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -149,9 +150,14 @@ public class Robot extends TimedRobot {
 
 		firstAuto = new LinkedList<AutoStep>();
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.0f));
-		firstAuto.add(new LimelightTrack(swerveDrive, null, limelight));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0, 1));
+		firstAuto.add(new Shoot(shooter, null, this, true));
+		firstAuto.add(new Wait(1.0f, swerveDrive));
+		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.25f));
+		firstAuto.add(new MotorMoveStep(intake, 0.5f, -1.0f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 0.80f));
+		firstAuto.add(new Wait(0.5f, swerveDrive));
+		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
 
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
@@ -175,6 +181,9 @@ public class Robot extends TimedRobot {
 		} else {
 			// stop drivetrain
 			swerveDrive.drive(0, 0, 0, true, true);
+		}
+		if (runShooter) {
+			shooter.Update(4900, 4200);
 		}
 
 	}
@@ -246,7 +255,7 @@ public class Robot extends TimedRobot {
 				shooter.Reset();
 			}
 
-			shooter.Update(3000, 3500);
+			shooter.Update(4900, 4200);
 
 			if (operator.getRawButton(1)) {
 				clawRun = true;
@@ -254,6 +263,10 @@ public class Robot extends TimedRobot {
 
 		} else {
 			shooter.PowerManual(0.0f);
+		}
+
+		if (operator.getRawButton(10)) {
+			clawRun = true;
 		}
 
 		// driver
@@ -424,21 +437,26 @@ public class Robot extends TimedRobot {
 
 			// drive controls
 			double pow = 2;
-			double axisZero = Math.pow(driver.getRawAxis(0), pow)
-					* (driver.getRawAxis(0) / Math.abs(driver.getRawAxis(0)));
-			double axisOne = Math.pow(driver.getRawAxis(1), pow)
+			double axisZero = -Math.pow(driver.getRawAxis(1), pow)
 					* (driver.getRawAxis(1) / Math.abs(driver.getRawAxis(1)));
+			double axisOne = Math.pow(driver.getRawAxis(0), pow)
+					* (driver.getRawAxis(0) / Math.abs(driver.getRawAxis(0)));
 
 			if (driver.getRawButton(6)) {
 				axisZero = axisZero * 0.25;
 				axisOne = axisOne * 0.25;
 			}
 
-			swerveDrive.drive(
-					MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
-					-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
-					-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
-					true, true);
+			if (driver.getRawButton(5)) {
+				limelight.PositionRotate(swerveDrive);
+			} else {
+
+				swerveDrive.drive(
+						MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
+						-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
+						-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
+						true, true);
+			}
 		}
 
 		// zero

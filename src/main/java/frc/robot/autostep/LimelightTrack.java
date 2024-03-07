@@ -30,10 +30,6 @@ public class LimelightTrack extends AutoStep {
     public void Update() {
        limelight.PositionRotate(driveTrain);
 
-        runShooter = true;
-
-
-        //limelight.Position(driveTrain);
         if (limelight.OnTargetHorizontal()) {
             limelight.reset();
             isDone = true;
