@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Limelight {
 
-    private float targetBuffer = 3f;
+    private float targetBuffer = 1.2f;
 
     public double p = 0.02;
     public double i = 0.000;
@@ -22,8 +22,8 @@ public class Limelight {
     public double iTranslate = 0.000;
     public double dTranslate = 0.1;
 
-    public double pDistance = 0.01;
-    public double iDistance = 0.000;
+    public double pDistance = 0.012;
+    public double iDistance = 0.0001;
     public double dDistance = 0.0;
 
     String pKey = "limelight_P";
@@ -69,8 +69,8 @@ public class Limelight {
         }
     }
 
-    public int GetAprilID() {
-        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    public int GetAprilID(String id) {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable(id);
         NetworkTableEntry tid = table.getEntry("tid");
         NetworkTableEntry tv = table.getEntry("tv");
 
@@ -99,17 +99,28 @@ public class Limelight {
         return ty.getDouble(0.0);
     }
 
+    public double GetY_back() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-back");
+        NetworkTableEntry ty = table.getEntry("ty");
+        return ty.getDouble(0.0);
+    }
+
     public double GetX() {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
         NetworkTableEntry ty = table.getEntry("tx");
         return ty.getDouble(0.0);
     }
 
-    public boolean OnTarget() {
-        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    public double GetX_back() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-back");
+        NetworkTableEntry ty = table.getEntry("tx");
+        return ty.getDouble(0.0);
+    }
+    
+    public boolean OnTarget(String id) {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable(id);
         NetworkTableEntry tx = table.getEntry("tx");
         NetworkTableEntry ty = table.getEntry("ty");
-        NetworkTableEntry ta = table.getEntry("ta");
         NetworkTableEntry tv = table.getEntry("tv");
 
         // Make sure we have valid targets first
@@ -143,7 +154,7 @@ public class Limelight {
 
     public void PositionRotate(DriveSubsystem swerve) {
 
-        if (OnTarget()) {
+        if (OnTarget("limelight")) {
             swerve.drive(0, 0, 0, true, true);
             return;
         }
@@ -169,7 +180,7 @@ public class Limelight {
 
     public void PositionTranslate(DriveSubsystem swerve) {
 
-        if (OnTarget()) {
+        if (OnTarget("limelight")) {
             swerve.drive(0, 0, 0, true, true);
             return;
         }
@@ -235,8 +246,8 @@ public class Limelight {
         pid_rotate.setD(0);
 
         // get current error
-        double x = GetX();
-        double y = GetY();
+        double x = GetX_back();
+        double y = GetY_back();
         double yaw = swerve.m_gyro.getYaw();
 
         // calculate
@@ -244,7 +255,11 @@ public class Limelight {
         float pidY = (float) pid_translate.calculate(y, 0);
         float pidRot = (float) -pid_rotate.calculate(yaw, targetRotationDegrees);
 
-        swerve.drive(pidY, pidX, pidRot, false, true);
+        if (targetRotationDegrees == -1) {
+            swerve.drive(pidY, pidX, 0, false, true);
+        } else {
+            swerve.drive(pidY, pidX, pidRot, false, true);
+        }
     }
 
     public void reset() {

@@ -110,7 +110,7 @@ public class Robot extends TimedRobot {
 
 	public DigitalInput limitSwitchOne = new DigitalInput(1);
 	public DigitalInput limitSwitchTwo = new DigitalInput(0);
-	public DigitalInput clawStop = new DigitalInput(6);
+	public DigitalInput clawStop = new DigitalInput(4);
 	public Timer clawStopTimer = new Timer();
 
 	public boolean holding = false;
@@ -120,6 +120,7 @@ public class Robot extends TimedRobot {
 	public boolean firstClick = false;
 	public Boolean secondClick = false;
 	public boolean runShooter = false;
+	public boolean firstClaw = false;
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -158,6 +159,7 @@ public class Robot extends TimedRobot {
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 0.80f));
 		firstAuto.add(new Wait(0.5f, swerveDrive));
 		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+		firstAuto.add(new Shoot(shooter, null, this, false));
 
 		autonomousSelected = firstAuto;
 		autonomousSelected.get(0).Begin();
@@ -242,7 +244,7 @@ public class Robot extends TimedRobot {
 		if (operator.getRawButton(4)) {
 			armsUp = true;
 		}
-		if (operator.getRawButtonPressed(4)) {
+		if (operator.getRawButtonPressed(4) || driver.getRawButton(2)) {
 			firstClick = false;
 			secondClick = false;
 		}
@@ -290,40 +292,45 @@ public class Robot extends TimedRobot {
 				// 1. position robot
 
 				// position and rotate robot to on target
-				// move up climber arms
+				armsUp = false;
 
-				if (limelight.GetAprilID() == 13) {
-					limelight.PositionCursor(swerveDrive, 90);
-				} else if (limelight.GetAprilID() == 12) {
-					limelight.PositionCursor(swerveDrive, -140);
-				} else if (limelight.GetAprilID() == 11) {
-					limelight.PositionCursor(swerveDrive, -29.5);
+
+				if (limelight.GetAprilID("limelight-back") == 13) {
+					// limelight.PositionCursor(swerveDrive, 90);
+				} else if (limelight.GetAprilID("limelight-back") == 12
+						|| limelight.GetAprilID("limelight-back") == 15) {
+					 limelight.PositionCursor(swerveDrive, -55);
+				} else if (limelight.GetAprilID("limelight-back") == 11
+						|| limelight.GetAprilID("limelight-back") == 16) {
+					 limelight.PositionCursor(swerveDrive, 60);
 				}
 
-				if (limelight.OnTarget()) {
-					climbStep = 1;
-					climberStepTimer.start();
+				if (limelight.OnTarget("limelight-back")) {
+					//climbStep = climbStep + 1;
+					//limberStepTimer.start();
+					armsUp = true;
+					System.out.println("goin up");
 				}
 
 			} else if (climbStep == 1) {
-				// 2. drive under chain
-
-				swerveDrive.drive(0.1, 0, 0, false, true);
+				// 2. hooks up
+				armsUp = true;
 
 				if (climberStepTimer.get() > 0.8) {
 					swerveDrive.drive(0, 0, 0, false, true);
 
 					climberStepTimer.reset();
-					climbStep = climbStep + 1;
+					// climbStep = climbStep + 1;
 				}
 
 			} else if (climbStep == 2) {
-				// 3. Rotate claw
-				clawSpin.set(0.25);
+				// 3. drive to hook
+				swerveDrive.drive(0.1, 0, 0, false, true);
 
 				if (climberStepTimer.get() > 0.5) {
 					climberStepTimer.reset();
-					climbStep = climbStep + 1;
+					// climbStep = climbStep + 1;
+					// stop!
 				}
 			} else if (climbStep == 3) {
 				// 4. back out
@@ -387,19 +394,26 @@ public class Robot extends TimedRobot {
 			// intake
 			// System.out.println(clawStop.get());
 
-			if (clawStop.get()) {
+			if (clawStop.get() && !firstClaw) {
 				clawStopTimer.reset();
 				clawStopTimer.start();
+				firstClaw = false;
 			}
-			if (operator.getRawButton(1) && clawStop.get() && clawStopTimer.get() < 0.5) {
+			if (operator.getRawButton(1) && clawStop.get() && clawStopTimer.get() < 1.5) {
 				intake.set(-0.70);
 				clawRun = true;
 			} else {
-				intake.set(0.0);
+				if (operator.getRawButton(9)) {
+					intake.set(0.7);
+				} else {
+					intake.set(0.0);
+				}
 			}
 
 			if (clawRun) {
 				claw.set(0.5);
+			} else if (operator.getRawButton(9)) {
+				claw.set(-1.0);
 			} else {
 				claw.set(0.0);
 			}
@@ -425,7 +439,7 @@ public class Robot extends TimedRobot {
 				double gravityOffset = armPower * idlePowerArm;
 
 				if (operator.getRawButton(5)) {
-					clawSpin.setVoltage(gravityOffset + (operator.getRawAxis(5) * 1.5));
+					clawSpin.setVoltage(gravityOffset + (operator.getRawAxis(5) * 4.5));
 				} else {
 					clawSpin.setVoltage(0);
 				}
@@ -449,13 +463,24 @@ public class Robot extends TimedRobot {
 
 			if (driver.getRawButton(5)) {
 				limelight.PositionRotate(swerveDrive);
+			} else if (driver.getRawButton(4)) {
+				limelight.PositionCursor(swerveDrive, -1);
 			} else {
 
-				swerveDrive.drive(
-						MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
-						-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
-						-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
-						true, true);
+				if (driver.getRawAxis(3) > 0.1) {
+					swerveDrive.drive(
+							MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
+							-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
+							-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
+							false, true);
+				} else {
+					swerveDrive.drive(
+							MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
+							-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
+							-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
+							true, true);
+				}
+
 			}
 		}
 
