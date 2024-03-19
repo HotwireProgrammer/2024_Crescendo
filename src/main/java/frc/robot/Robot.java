@@ -129,7 +129,6 @@ public class Robot extends TimedRobot {
 
 	public void robotInit() {
 
-		limelight.SetLight(false);
 		limelight.Init();
 		SmartDashboard.putNumber(autoSelectKey, 0);
 
@@ -215,8 +214,6 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopInit() {
-
-		limelight.SetLight(false);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
@@ -415,7 +412,12 @@ public class Robot extends TimedRobot {
 			}
 
 			// intake
-			System.out.println(clawStop.get());
+
+			if (clawStop.get()) {
+				limelight.SetLight(false);
+			} else {
+				limelight.SetLight(true);
+			}
 
 			if (clawStop.get() && !firstClaw) {
 				clawStopTimer.reset();

@@ -64,8 +64,10 @@ public class Limelight {
     public void SetLight(boolean turnOn) {
         if (turnOn) {
             NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+            NetworkTableInstance.getDefault().getTable("limelight-back").getEntry("ledMode").setNumber(3);
         } else {
-            NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);// 1
+            NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(0);
+            NetworkTableInstance.getDefault().getTable("limelight-back").getEntry("ledMode").setNumber(0);
         }
     }
 
