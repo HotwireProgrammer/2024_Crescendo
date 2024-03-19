@@ -89,6 +89,7 @@ public class Robot extends TimedRobot {
 
 	// Auto
 	public LinkedList<AutoStep> firstAuto;
+	public LinkedList<AutoStep> autoStraight;
 
 	public LinkedList<AutoStep> autonomousSelected;
 	public int currentAutoStep = 0;
@@ -149,19 +150,42 @@ public class Robot extends TimedRobot {
 	public void autonomousInit() {
 		currentAutoStep = 0;
 
+		// first auto
 		firstAuto = new LinkedList<AutoStep>();
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.0f));
 		firstAuto.add(new Shoot(shooter, null, this, true));
 		firstAuto.add(new Wait(1.0f, swerveDrive));
 		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.25f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.4f));
 		firstAuto.add(new MotorMoveStep(intake, 0.5f, -1.0f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 0.80f));
-		firstAuto.add(new Wait(0.5f, swerveDrive));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
+		firstAuto.add(new Wait(1f, swerveDrive));
+		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+		// After first two shots
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.3f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0.25f, 5));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0f, -0.25f, 0, 0.65f));
+		firstAuto.add(new MotorMoveStep(intake, 1.0f, -1.0f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 0, 0.25f, 5));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0f, 0.25f, 0, 1.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 0.75f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 0, 0.25f, 5));
+		firstAuto.add(new Wait(1f, swerveDrive));
 		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
 		firstAuto.add(new Shoot(shooter, null, this, false));
 
+		// auto straight
+		autoStraight = new LinkedList<AutoStep>();
+		autoStraight.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 4.0f));
+
+		double autoChoice = SmartDashboard.getNumber(autoSelectKey, 0);
 		autonomousSelected = firstAuto;
+		if (autoChoice == 0) {
+			autonomousSelected = firstAuto;
+		} else if (autoChoice == 1) {
+			autonomousSelected = autoStraight;
+		}
+
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
 	}
@@ -184,10 +208,10 @@ public class Robot extends TimedRobot {
 			// stop drivetrain
 			swerveDrive.drive(0, 0, 0, true, true);
 		}
+
 		if (runShooter) {
 			shooter.Update(4900, 4200);
 		}
-
 	}
 
 	public void teleopInit() {
@@ -294,20 +318,19 @@ public class Robot extends TimedRobot {
 				// position and rotate robot to on target
 				armsUp = false;
 
-
 				if (limelight.GetAprilID("limelight-back") == 13) {
 					// limelight.PositionCursor(swerveDrive, 90);
 				} else if (limelight.GetAprilID("limelight-back") == 12
 						|| limelight.GetAprilID("limelight-back") == 15) {
-					 limelight.PositionCursor(swerveDrive, -55);
+					limelight.PositionCursor(swerveDrive, -55);
 				} else if (limelight.GetAprilID("limelight-back") == 11
 						|| limelight.GetAprilID("limelight-back") == 16) {
-					 limelight.PositionCursor(swerveDrive, 60);
+					limelight.PositionCursor(swerveDrive, 60);
 				}
 
 				if (limelight.OnTarget("limelight-back")) {
-					//climbStep = climbStep + 1;
-					//limberStepTimer.start();
+					// climbStep = climbStep + 1;
+					// limberStepTimer.start();
 					armsUp = true;
 					System.out.println("goin up");
 				}
@@ -392,7 +415,7 @@ public class Robot extends TimedRobot {
 			}
 
 			// intake
-			// System.out.println(clawStop.get());
+			System.out.println(clawStop.get());
 
 			if (clawStop.get() && !firstClaw) {
 				clawStopTimer.reset();
