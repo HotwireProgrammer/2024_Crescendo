@@ -152,7 +152,7 @@ public class Robot extends TimedRobot {
 
 		// first auto
 		firstAuto = new LinkedList<AutoStep>();
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.1f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.2f));
 		firstAuto.add(new Shoot(shooter, null, this, true));
 		firstAuto.add(new Wait(1.5f, swerveDrive));
 		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
@@ -180,7 +180,7 @@ public class Robot extends TimedRobot {
 
 		// two note
 		twoNote = new LinkedList<AutoStep>();
-		twoNote.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.1f));
+		twoNote.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.2f));
 		twoNote.add(new Shoot(shooter, null, this, true));
 		twoNote.add(new Wait(1.5f, swerveDrive));
 		twoNote.add(new MotorMoveStep(claw, 1.0f, 0.5f));
@@ -315,6 +315,8 @@ public class Robot extends TimedRobot {
 
 		// limelight climbing
 		if (driver.getRawButton(2)) {
+
+			limelight.SetLight(true);
 
 			// reset everything for a new climb
 			if (driver.getRawButtonPressed(2)) {
@@ -464,7 +466,8 @@ public class Robot extends TimedRobot {
 
 			// claw
 			{
-				float idlePowerArm = 1.8f;
+				float idlePowerArm = 0.9f;
+				
 				float pi = 3.14159f;
 				float armDegStart = 30f;
 				float zeroOffsetDeg = -90.0f;
@@ -483,7 +486,7 @@ public class Robot extends TimedRobot {
 				double gravityOffset = armPower * idlePowerArm;
 
 				if (operator.getRawButton(5)) {
-					clawSpin.setVoltage(gravityOffset + (operator.getRawAxis(5) * 2.5));
+					clawSpin.setVoltage(gravityOffset + (operator.getRawAxis(5) * 3.5));
 				} else {
 					clawSpin.setVoltage(0);
 				}
