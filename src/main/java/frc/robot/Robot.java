@@ -176,6 +176,7 @@ public class Robot extends TimedRobot {
 
 		// auto straight
 		autoStraight = new LinkedList<AutoStep>();
+		autoStraight.add(new Wait(10f, swerveDrive));
 		autoStraight.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 4.0f));
 
 		// two note
