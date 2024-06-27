@@ -344,7 +344,7 @@ public class Robot extends TimedRobot {
 					limelight.PositionCursor(swerveDrive, -55);
 				} else if (limelight.GetAprilID("limelight-back") == 11
 						|| limelight.GetAprilID("limelight-back") == 16) {
-					limelight.PositionCursor(swerveDrive, 60);
+					limelight.PositionCursor(swerveDrive, -60);
 				}
 
 				if (limelight.OnTarget("limelight-back")) {
@@ -467,7 +467,7 @@ public class Robot extends TimedRobot {
 
 			// claw
 			{
-				float idlePowerArm = 0.9f;
+				float idlePowerArm = 0.5f;
 				
 				float pi = 3.14159f;
 				float armDegStart = 30f;
