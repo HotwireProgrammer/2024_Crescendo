@@ -98,14 +98,15 @@ public class Robot extends TimedRobot {
 	public String autoSelectKey = "autoMode";
 
 	// cansparkmax example
-	// public CANSparkMax elevator = new CANSparkMax(8, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax shooterLeft = new CANSparkMax(4, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax shooterRight = new CANSparkMax(2, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax feeder = new CANSparkMax(7, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax intake = new CANSparkMax(1, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax feederWheelLeft = new CANSparkMax(5, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax feederWheelRight = new CANSparkMax(3, CANSparkLowLevel.MotorType.kBrushless);
-
+    public CANSparkMax intake = new CANSparkMax(7, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax intakeWheelLeft = new CANSparkMax(5, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax intakeWheelRight = new CANSparkMax(3, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax shooterWheelUpper = new CANSparkMax(9, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax shooterWheelLower = new CANSparkMax(4, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax feederBeltLeft = new CANSparkMax(1, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax feederBeltRight = new CANSparkMax(2, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax shooterRotationTop = new CANSparkMax(11, CANSparkLowLevel.MotorType.kBrushless);
+	public CANSparkMax shooterRotationBottom = new CANSparkMax(6, CANSparkLowLevel.MotorType.kBrushless);
 
 	public float clawSpinOffset = 0;
 
@@ -146,15 +147,61 @@ public class Robot extends TimedRobot {
 
 	}
 
-/*
 	public void autonomousInit() {
 		currentAutoStep = 0;
 
-		// first auto
+	// first auto
 		firstAuto = new LinkedList<AutoStep>();
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.2f));
+//		firstAuto.add(new Shoot(shooter, null, this, true));
 		firstAuto.add(new Wait(1.5f, swerveDrive));
+//		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.4f));
+		firstAuto.add(new MotorMoveStep(intake, 0.5f, -1.0f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
+		firstAuto.add(new Wait(1f, swerveDrive));
+//		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+		// After first two shots
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.3f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0.25f, 5));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0f, -0.25f, 0, 0.65f));
+		firstAuto.add(new MotorMoveStep(intake, 1.0f, -1.0f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 0, 0.25f, 5));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0f, 0.25f, 0, 1.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 0.4f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 0, 0.25f, 5));
+		firstAuto.add(new Wait(1f, swerveDrive));
+//		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+//		firstAuto.add(new Shoot(shooter, null, this, false));
+
+
+		// auto straight
+		autoStraight = new LinkedList<AutoStep>();
+		autoStraight.add(new Wait(10f, swerveDrive));
+		autoStraight.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 4.0f));
+
+		// two note
+		twoNote = new LinkedList<AutoStep>();
+		twoNote.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.2f));
+//		twoNote.add(new Shoot(shooter, null, this, true));
+		twoNote.add(new Wait(1.5f, swerveDrive));
+//		twoNote.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+		twoNote.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.4f));
+		twoNote.add(new MotorMoveStep(intake, 0.5f, -1.0f));
+		twoNote.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
+		twoNote.add(new Wait(1f, swerveDrive));
+//		twoNote.add(new MotorMoveStep(claw, 1.0f, 0.5f));
+
+		double autoChoice = SmartDashboard.getNumber(autoSelectKey, 0);
 
 		autonomousSelected = firstAuto;
+		if (autoChoice == 0) {
+			autonomousSelected = firstAuto;
+		} else if (autoChoice == 1) {
+			autonomousSelected = autoStraight;
+		} else if (autoChoice == 2) {
+			autonomousSelected = twoNote;
+		}
 
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
@@ -179,7 +226,7 @@ public class Robot extends TimedRobot {
 			swerveDrive.drive(0, 0, 0, true, true);
 		}
 	}
-*/
+
 	public void teleopInit() {
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
@@ -219,38 +266,50 @@ public class Robot extends TimedRobot {
 					-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
 					-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
 					true, true);
-		}
+		} 
+
 
 		// zero
+
 		if (driver.getRawButton(1)) {
 			swerveDrive.zeroHeading();
 		}
 
 		if (operator.getRawButton(6)) {
-			shooterLeft.set(0.80);
-			shooterRight.set(0.80);
+			shooterWheelUpper.set(0.80);
+			shooterWheelLower.set(0.80);
+			
 		} else {
-			shooterLeft.set(0.0);
-			shooterRight.set(0.0);
+			shooterWheelUpper.set(0.0);
+			shooterWheelLower.set(0.0);
 		}
 
-		if (operator.getRawButton(5)){
-			feeder.set(-0.80);
+		if (operator.getRawButton(5)) {
+			feederBeltLeft.set(0.80);
+			feederBeltRight.set(-0.80);
 		} else {
-			feeder.set((0.0));
-		} 
-
-		//intake
-
-		if (operator.getRawButton(1)) {
-			feederWheelLeft.set(.50);
-			feederWheelRight.set(.50);
-			intake.set(.50);
-		} else {
-			feederWheelLeft.set(.00);
-			feederWheelRight.set(.00);
-			intake.set(.00);
+			feederBeltLeft.set(0.0);
+			feederBeltRight.set(0.0);
 		}
+
+		if (operator.getRawButton(1)){
+			intake.set(-0.80);
+			intakeWheelLeft.set(.50);
+			intakeWheelRight.set(-0.50);
+		} else {
+			intake.set((0.0));
+			intakeWheelLeft.set(0.0);
+			intakeWheelRight.set(0.0);
+		}
+
+		if (driver.getRawButton(1)) {
+			shooterRotationTop.set(-0.5);
+			shooterRotationBottom.set(-0.5);
+		} else {
+			shooterRotationTop.set(0.0);
+			shooterRotationBottom.set(0.0);
+		}
+		
 	}
 
 

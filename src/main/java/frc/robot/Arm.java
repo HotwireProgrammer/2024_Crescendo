@@ -5,6 +5,7 @@ import java.time.OffsetTime;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -17,9 +18,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Arm {
 
     // Arm
-    public CANSparkMax motorArmRetraction = new CANSparkMax(13, MotorType.kBrushless);
-    public CANSparkMax motorArm1 = new CANSparkMax(11, MotorType.kBrushless);
-    public CANSparkMax motorArm2 = new CANSparkMax(12, MotorType.kBrushless);
+    public CANSparkMax motorArmRetraction = new CANSparkMax(33, CANSparkLowLevel.MotorType.kBrushless);
+    public CANSparkMax motorArm1 = new CANSparkMax(31, CANSparkLowLevel.MotorType.kBrushless);
+    public CANSparkMax motorArm2 = new CANSparkMax(32, CANSparkLowLevel.MotorType.kBrushless);
 
     public RelativeEncoder encoderArmRevolutions = motorArm1.getEncoder();
     public RelativeEncoder encoderArmDistance = motorArmRetraction.getEncoder();

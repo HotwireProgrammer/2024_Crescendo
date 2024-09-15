@@ -2,7 +2,6 @@ package frc.robot.autostep;
 
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.DriveTrain;
-import frc.robot.Arm;
 import com.revrobotics.CANSparkMax;
 
 public class MotorMoveStep extends AutoStep {
