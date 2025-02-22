@@ -1,74 +1,20 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
-import edu.wpi.first.wpilibj.simulation.SolenoidSim;
+import java.util.LinkedList;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator.Validity;
-
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.CameraServer;
-
-import edu.wpi.first.wpilibj.DriverStation;
-
-import java.applet.AudioClip;
-import java.nio.Buffer;
-import java.rmi.server.Operation;
-import java.sql.Driver;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import edu.wpi.first.wpilibj.Ultrasonic;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.Joystick.AxisType;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.AnalogGyro;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.networktables.BooleanEntry;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
-import edu.wpi.first.wpilibj.RobotState;
-import frc.robot.autostep.*;
-import frc.robot.swerve.DriveSubsystem;
-import frc.robot.swerve.Constants.OIConstants;
-import edu.wpi.first.wpilibj.Compressor;
-import java.util.*;
-import java.util.ResourceBundle.Control;
-
-//import com.revrobotics.ColorSensorV3;
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.util.Color;
-
-import com.revrobotics.REVLibError;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.autostep.AutoStep;
+import frc.robot.swerve.Constants.OIConstants;
+import frc.robot.swerve.DriveSubsystem;
 
 public class Robot extends TimedRobot {
 
@@ -80,6 +26,8 @@ public class Robot extends TimedRobot {
 	// public CANSparkMax arm = new CANSparkMax(16, MotorType.kBrushless);
 
 	public Limelight limelight = new Limelight();
+
+	public DigitalInput beam = new DigitalInput(0);
 
 	public enum DriveScale {
 		linear, squared, tangent, inverse, cb, cbrt,
@@ -98,22 +46,13 @@ public class Robot extends TimedRobot {
 	public String autoSelectKey = "autoMode";
 
 	// cansparkmax example
-    public CANSparkMax intake = new CANSparkMax(7, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax intakeWheelLeft = new CANSparkMax(5, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax intakeWheelRight = new CANSparkMax(3, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax shooterWheelUpper = new CANSparkMax(9, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax shooterWheelLower = new CANSparkMax(4, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax feederBeltLeft = new CANSparkMax(1, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax feederBeltRight = new CANSparkMax(2, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax shooterRotationTop = new CANSparkMax(11, CANSparkLowLevel.MotorType.kBrushless);
-	public CANSparkMax shooterRotationBottom = new CANSparkMax(6, CANSparkLowLevel.MotorType.kBrushless);
-
+   
 	public float clawSpinOffset = 0;
 
-	public DigitalInput limitSwitchOne = new DigitalInput(1);
-	public DigitalInput limitSwitchTwo = new DigitalInput(0);
 	public DigitalInput clawStop = new DigitalInput(4);
 	public Timer clawStopTimer = new Timer();
+	public Timer shootWaitTimer = new Timer();
+
 
 	public boolean holding = false;
 
@@ -146,21 +85,19 @@ public class Robot extends TimedRobot {
 	public void disabledPeriodic() {
 
 	}
-
+/*z
 	public void autonomousInit() {
 		currentAutoStep = 0;
 
 	// first auto
 		firstAuto = new LinkedList<AutoStep>();
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.2f));
-//		firstAuto.add(new Shoot(shooter, null, this, true));
+		firstAuto.add(new MotorMoveStep(shooterWheelLower, 0.5f, 0.5f));
 		firstAuto.add(new Wait(1.5f, swerveDrive));
-//		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.4f));
 		firstAuto.add(new MotorMoveStep(intake, 0.5f, -1.0f));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
 		firstAuto.add(new Wait(1f, swerveDrive));
-//		firstAuto.add(new MotorMoveStep(claw, 1.0f, 0.5f));
 		// After first two shots
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 0.3f));
 		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0.25f, 5));
@@ -181,7 +118,7 @@ public class Robot extends TimedRobot {
 		autoStraight.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 4.0f));
 
 		// two note
-		twoNote = new LinkedList<AutoStep>();
+/*		twoNote = new LinkedList<AutoStep>();
 		twoNote.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.2f));
 //		twoNote.add(new Shoot(shooter, null, this, true));
 		twoNote.add(new Wait(1.5f, swerveDrive));
@@ -226,7 +163,7 @@ public class Robot extends TimedRobot {
 			swerveDrive.drive(0, 0, 0, true, true);
 		}
 	}
-
+*/
 	public void teleopInit() {
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
@@ -275,41 +212,8 @@ public class Robot extends TimedRobot {
 			swerveDrive.zeroHeading();
 		}
 
-		if (operator.getRawButton(6)) {
-			shooterWheelUpper.set(0.80);
-			shooterWheelLower.set(0.80);
-			
-		} else {
-			shooterWheelUpper.set(0.0);
-			shooterWheelLower.set(0.0);
-		}
+		System.out.println(beam.get());
 
-		if (operator.getRawButton(5)) {
-			feederBeltLeft.set(0.80);
-			feederBeltRight.set(-0.80);
-		} else {
-			feederBeltLeft.set(0.0);
-			feederBeltRight.set(0.0);
-		}
-
-		if (operator.getRawButton(1)){
-			intake.set(-0.80);
-			intakeWheelLeft.set(.50);
-			intakeWheelRight.set(-0.50);
-		} else {
-			intake.set((0.0));
-			intakeWheelLeft.set(0.0);
-			intakeWheelRight.set(0.0);
-		}
-
-		if (driver.getRawButton(1)) {
-			shooterRotationTop.set(-0.5);
-			shooterRotationBottom.set(-0.5);
-		} else {
-			shooterRotationTop.set(0.0);
-			shooterRotationBottom.set(0.0);
-		}
-		
 	}
 
 
